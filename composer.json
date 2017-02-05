@@ -1,0 +1,22 @@
+{
+    "name": "byjg/uri",
+    "description": "An implementation of Uri",
+    "authors": [
+        {
+            "name": "João Gilberto Magalhães",
+            "email": "joao@byjg.com.br"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ByJG\\Util\\": "src/"
+        }
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0",
+        "psr/http-message": "~1.0"
+    },
+    "license": "MIT"
+}
