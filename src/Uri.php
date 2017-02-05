@@ -108,10 +108,11 @@ class Uri implements UriInterface
     /**
      * @param string $key
      * @param string|array $value
+     * @param bool $encode
      */
-    public function withQueryKeyValue($key, $value)
+    public function withQueryKeyValue($key, $value, $encode = true)
     {
-        $this->query[$key] = $value;
+        $this->query[$key] = ($encode ? urlencode($value) : $value);
     }
 
     /**
