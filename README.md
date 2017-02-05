@@ -1,4 +1,6 @@
 # Uri class
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/uri/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/uri/?branch=master)
+[![Build Status](https://travis-ci.org/byjg/uri.svg?branch=master)](https://travis-ci.org/byjg/uri)
 
 An implementation of Psr UriInterface
 
