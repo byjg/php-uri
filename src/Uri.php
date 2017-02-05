@@ -18,6 +18,7 @@ class Uri implements UriInterface
     public function withScheme($value)
     {
         $this->scheme = $value;
+        return $this;
     }
 
     public function getScheme()
@@ -32,6 +33,7 @@ class Uri implements UriInterface
     {
         $this->username = $user;
         $this->password = $password;
+        return $this;
     }
 
     public function getUserInfo()
@@ -61,6 +63,7 @@ class Uri implements UriInterface
     public function withHost($value)
     {
         $this->host = $value;
+        return $this;
     }
 
     public function getHost()
@@ -73,6 +76,7 @@ class Uri implements UriInterface
     public function withPort($value)
     {
         $this->port = $value;
+        return $this;
     }
 
     public function getPort()
@@ -85,6 +89,7 @@ class Uri implements UriInterface
     public function withPath($value)
     {
         $this->path = $value;
+        return $this;
     }
 
     public function getPath()
@@ -97,6 +102,7 @@ class Uri implements UriInterface
     public function withQuery($query)
     {
         parse_str($query, $this->query);
+        return $this;
     }
 
 
@@ -109,10 +115,12 @@ class Uri implements UriInterface
      * @param string $key
      * @param string|array $value
      * @param bool $encode
+     * @return $this
      */
     public function withQueryKeyValue($key, $value, $encode = true)
     {
         $this->query[$key] = ($encode ? urlencode($value) : $value);
+        return $this;
     }
 
     /**
@@ -145,6 +153,7 @@ class Uri implements UriInterface
     public function withFragment($fragment)
     {
         $this->fragment = $fragment;
+        return $this;
     }
 
     public function getAuthority()

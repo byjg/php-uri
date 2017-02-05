@@ -302,4 +302,42 @@ class UriTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($uriStr, $uri->__toString());
     }
+
+    public function testMountUrl1()
+    {
+        $this->assertEquals(
+            'http://host.com:1234',
+            (new Uri())
+                ->withScheme('http')
+                ->withHost('host.com')
+                ->withPort('1234')
+        );
+    }
+
+    public function testMountUrl2()
+    {
+        $uri = new Uri('/some/relative/path');
+
+        $this->assertEquals(
+            'http://host.com/some/relative/path',
+            $uri
+                ->withScheme('http')
+                ->withHost('host.com')
+        );
+    }
+
+    public function testChangeParaemters()
+    {
+        $uri = new Uri('http://foo-host.com/path?key=value&otherkey=othervalue#fragment');
+
+        $this->assertEquals(
+            'http://bar.net/otherpath?key=newvalue&otherkey=othervalue&newkey=value#fragment',
+            $uri
+                ->withHost('bar.net')
+                ->withPath('/otherpath')
+                ->withQueryKeyValue('key', 'newvalue')
+                ->withQueryKeyValue('newkey', 'value')
+        );
+    }
+
 }
