@@ -71,8 +71,12 @@ class Uri implements UriInterface
         return $this->host;
     }
 
-    private $port = "";
+    private $port;
 
+    /**
+     * @param int|string|null $value
+     * @return $this
+     */
     public function withPort($value)
     {
         $this->port = $value;
