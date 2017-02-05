@@ -2,8 +2,6 @@
 
 namespace ByJG\Util;
 
-use ByJG\AnyDataset\Exception\DatabaseException;
-use InvalidArgumentException;
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -196,8 +194,6 @@ class Uri implements UriInterface
 
     /**
      * @param string $uri
-     * @throws DatabaseException
-     * @throws InvalidArgumentException
      */
     public function __construct($uri = null)
     {
