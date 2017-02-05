@@ -1,6 +1,6 @@
 {
     "name": "byjg/uri",
-    "description": "An implementation of Uri",
+    "description": "An implementation of PSR UriInterface ",
     "authors": [
         {
             "name": "João Gilberto Magalhães",

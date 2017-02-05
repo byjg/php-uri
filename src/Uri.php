@@ -165,10 +165,6 @@ class Uri implements UriInterface
             $uri .= $this->getScheme() . ':';
         }
 
-        if ($this->getScheme() === 'file') {
-            $uri .= '/';
-        }
-
         $uri .= '//' . $this->getAuthority();
 
         $uri .= $this->getPath();
@@ -198,7 +194,7 @@ class Uri implements UriInterface
             $this->withHost($this->getFromArray($parsed, 'host'));
             $this->withPort($this->getFromArray($parsed, 'port'));
             $this->withUserInfo($this->getFromArray($parsed, 'user'), $this->getFromArray($parsed, 'pass'));
-            $this->withPath($this->getFromArray($parsed, 'path'));
+            $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
             $this->withQuery($this->getFromArray($parsed, 'query'));
             $this->withFragment($this->getFromArray($parsed, 'fragment'));
         }

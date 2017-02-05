@@ -54,7 +54,7 @@ class UriTest extends \PHPUnit_Framework_TestCase
                     'Host' => 'hostname',
                     'Port' => null,
                     'Path' => '/path/path2',
-                    'Query' => 'arg=value$arg2=value2',
+                    'Query' => 'arg=value&arg2=value2',
                     'Fragment' => 'anchor',
                     'Authority' => 'username:password@hostname'
                 ]
@@ -296,10 +296,10 @@ class UriTest extends \PHPUnit_Framework_TestCase
     {
         $uri = new Uri($uriStr);
 
-        $this->assertEquals($uriStr, $uri->__toString());
-
         foreach ((array)$assertFields as $field => $expected) {
             $this->assertEquals($expected, $uri->{"get" . $field}(), 'Method ' . "get" . $field);
         }
+
+        $this->assertEquals($uriStr, $uri->__toString());
     }
 }
