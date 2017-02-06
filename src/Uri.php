@@ -160,36 +160,36 @@ class Uri implements UriInterface
 
     public function getAuthority()
     {
-        $userInfo = $this->getUserInfo();
-
-        return (
-            (!empty($userInfo) ? $userInfo . "@" : "")
+        return
+            $this->concatSuffix($this->getUserInfo(), "@")
             . $this->getHost()
-            . (!empty($this->port) ? ":" . $this->getPort() : "")
-        );
+            . $this->concatPrefix(':', $this->getPort());
     }
 
     public function __toString()
     {
-        $uri = '';
+        return
+            $this->concatSuffix($this->getScheme(), ':')
+            . '//' . $this->getAuthority()
+            . $this->getPath()
+            . $this->concatPrefix('?', $this->getQuery())
+            . $this->concatPrefix('#', $this->getFragment());
+    }
 
-        if (!empty($this->scheme)) {
-            $uri .= $this->getScheme() . ':';
+    private function concatSuffix($str, $suffix)
+    {
+        if (!empty($str)) {
+            $str = $str . $suffix;
         }
+        return $str;
+    }
 
-        $uri .= '//' . $this->getAuthority();
-
-        $uri .= $this->getPath();
-
-        if (!empty($this->query)) {
-            $uri .= '?' . $this->getQuery();
+    private function concatPrefix($prefix, $str)
+    {
+        if (!empty($str)) {
+            $str = $prefix . $str;
         }
-
-        if (!empty($this->fragment)) {
-            $uri .= '#' . $this->getFragment();
-        }
-
-        return $uri;
+        return $str;
     }
 
     /**
