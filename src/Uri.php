@@ -227,7 +227,7 @@ class Uri implements UriInterface
                 $this->withHost($matches['host']);
                 $this->withPort($matches['port']);
                 $this->withPath($matches['path']);
-                $this->withQuery($matches['query']);
+                $this->withQuery(isset($matches['query']) ? $matches['query'] : null);
             }
         }
     }
