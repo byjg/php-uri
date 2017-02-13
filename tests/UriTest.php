@@ -120,6 +120,21 @@ class UriTest extends \PHPUnit_Framework_TestCase
                 ]
             ],
             [
+                'sqlite:///home/user/file.txt',
+                [
+                    'Scheme' => 'sqlite',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => null,
+                    'Host' => null,
+                    'Port' => null,
+                    'Path' => '/home/user/file.txt',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => null
+                ]
+            ],
+            [
                 'https://hostname.com:443',
                 [
                     'Scheme' => 'https',

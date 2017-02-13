@@ -169,8 +169,8 @@ class Uri implements UriInterface
     public function __toString()
     {
         return
-            $this->concatSuffix($this->getScheme(), ':')
-            . '//' . $this->getAuthority()
+            $this->concatSuffix($this->getScheme(), '://')
+            . $this->getAuthority()
             . $this->getPath()
             . $this->concatPrefix('?', $this->getQuery())
             . $this->concatPrefix('#', $this->getFragment());
@@ -197,16 +197,38 @@ class Uri implements UriInterface
      */
     public function __construct($uri = null)
     {
-        if (!empty($uri)) {
-            $parsed = parse_url($uri);
+        if (empty($uri)) {
+            return;
+        }
 
-            $this->withScheme($this->getFromArray($parsed, 'scheme'));
-            $this->withHost($this->getFromArray($parsed, 'host'));
-            $this->withPort($this->getFromArray($parsed, 'port'));
-            $this->withUserInfo($this->getFromArray($parsed, 'user'), $this->getFromArray($parsed, 'pass'));
-            $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
-            $this->withQuery($this->getFromArray($parsed, 'query'));
-            $this->withFragment($this->getFromArray($parsed, 'fragment'));
+        $parsed = parse_url($uri);
+
+        $this->withScheme($this->getFromArray($parsed, 'scheme'));
+        $this->withHost($this->getFromArray($parsed, 'host'));
+        $this->withPort($this->getFromArray($parsed, 'port'));
+        $this->withUserInfo($this->getFromArray($parsed, 'user'), $this->getFromArray($parsed, 'pass'));
+        $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
+        $this->withQuery($this->getFromArray($parsed, 'query'));
+        $this->withFragment($this->getFromArray($parsed, 'fragment'));
+
+        $final = $this->__toString();
+        // Try recover if parse_url fails :(
+        if (empty($final)) {
+            $patScheme = "(?P<scheme>[\w\.]+)\:\/\/";
+            $patCredentials = "(?:((?P<username>\S+):(?P<password>\S+)|(?P<username2>\S+))@)?";
+            $patHost = "((?P<host>[\w\-\.,_]+)(?::(?P<port>\d+))?)?";
+            $patPath = "(?P<path>([\/\w\-\.]+))?";
+            $patQuery = "(?:\?(?P<query>(?:[\w\-\.]+=[\w\-%\.\/]+&?)*))?";
+
+            $matches = [];
+            if (preg_match("~$patScheme$patCredentials$patHost$patPath$patQuery~", $uri, $matches)) {
+                $this->withScheme($matches['scheme']);
+                $this->withUserInfo($matches['username'], $matches['password']);
+                $this->withHost($matches['host']);
+                $this->withPort($matches['port']);
+                $this->withPath($matches['path']);
+                $this->withQuery($matches['query']);
+            }
         }
     }
 }
