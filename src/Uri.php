@@ -219,16 +219,32 @@ class Uri implements UriInterface
             $patHost = "((?P<host>[\w\-\.,_]+)(?::(?P<port>\d+))?)?";
             $patPath = "(?P<path>([\/\w\-\.]+))?";
             $patQuery = "(?:\?(?P<query>(?:[\w\-\.]+=[\w\-%\.\/]+&?)*))?";
+            $patFragment = "(?:#(?P<fragment>.*))?";
 
             $matches = [];
-            if (preg_match("~$patScheme$patCredentials$patHost$patPath$patQuery~", $uri, $matches)) {
-                $this->withScheme($matches['scheme']);
-                $this->withUserInfo($matches['username'], $matches['password']);
-                $this->withHost($matches['host']);
-                $this->withPort($matches['port']);
-                $this->withPath($matches['path']);
-                $this->withQuery(isset($matches['query']) ? $matches['query'] : null);
+            if (preg_match("~$patScheme$patCredentials$patHost$patPath$patQuery$patFragment~", $uri, $matches)) {
+                $userName = $this->getMatchValue($matches, 'username');
+                if (is_null($userName)) {
+                    $userName = $this->getMatchValue($matches, 'username2');
+                }
+
+                $this->withScheme($this->getMatchValue($matches, 'scheme'));
+                $this->withUserInfo($userName, $this->getMatchValue($matches, 'password'));
+                $this->withHost($this->getMatchValue($matches, 'host'));
+                $this->withPort($this->getMatchValue($matches, 'port'));
+                $this->withPath($this->getMatchValue($matches, 'path'));
+                $this->withQuery($this->getMatchValue($matches, 'query'));
+                $this->withFragment($this->getMatchValue($matches, 'fragment'));
             }
         }
+    }
+
+    private function getMatchValue($matches, $key)
+    {
+        if (isset($matches[$key])) {
+            return $matches[$key];
+        }
+
+        return null;
     }
 }
