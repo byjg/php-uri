@@ -201,42 +201,30 @@ class Uri implements UriInterface
             return;
         }
 
-        $parsed = parse_url($uri);
+        $pattern = "/^"
+            . "(?:(?P<scheme>\w+):\/\/)?"
+            . "(?:(?P<user>\S+):(?P<pass>\S+)@)?"
+            . "(?:(?P<user2>\S+)@)?"
+            . "(?:(?P<host>[\w\d\-]+(?:\.[\w\d\-]+)*))?"
+            . "(?::(?P<port>[\d]+))?"
+            . "(?P<path>[^?#]+)?"
+            . "(?:\?(?P<query>[^#]+))?"
+            . "(?:#(?P<fragment>.*))?"
+            . "$/";
+        preg_match($pattern, $uri, $parsed);
+
+        $user = $this->getFromArray($parsed, 'user');
+        if (empty($user)) {
+            $user = $this->getFromArray($parsed, 'user2');
+        }
 
         $this->withScheme($this->getFromArray($parsed, 'scheme'));
         $this->withHost($this->getFromArray($parsed, 'host'));
         $this->withPort($this->getFromArray($parsed, 'port'));
-        $this->withUserInfo($this->getFromArray($parsed, 'user'), $this->getFromArray($parsed, 'pass'));
+        $this->withUserInfo($user, $this->getFromArray($parsed, 'pass'));
         $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
         $this->withQuery($this->getFromArray($parsed, 'query'));
         $this->withFragment($this->getFromArray($parsed, 'fragment'));
-
-        $final = $this->__toString();
-        // Try recover if parse_url fails :(
-        if (empty($final)) {
-            $patScheme = "(?P<scheme>[\w\.]+)\:\/\/";
-            $patCredentials = "(?:((?P<username>\S+):(?P<password>\S+)|(?P<username2>\S+))@)?";
-            $patHost = "((?P<host>[\w\-\.,_]+)(?::(?P<port>\d+))?)?";
-            $patPath = "(?P<path>([\/\w\-\.]+))?";
-            $patQuery = "(?:\?(?P<query>(?:[\w\-\.]+=[\w\-%\.\/]+&?)*))?";
-            $patFragment = "(?:#(?P<fragment>.*))?";
-
-            $matches = [];
-            if (preg_match("~$patScheme$patCredentials$patHost$patPath$patQuery$patFragment~", $uri, $matches)) {
-                $userName = $this->getMatchValue($matches, 'username');
-                if (is_null($userName)) {
-                    $userName = $this->getMatchValue($matches, 'username2');
-                }
-
-                $this->withScheme($this->getMatchValue($matches, 'scheme'));
-                $this->withUserInfo($userName, $this->getMatchValue($matches, 'password'));
-                $this->withHost($this->getMatchValue($matches, 'host'));
-                $this->withPort($this->getMatchValue($matches, 'port'));
-                $this->withPath($this->getMatchValue($matches, 'path'));
-                $this->withQuery($this->getMatchValue($matches, 'query'));
-                $this->withFragment($this->getMatchValue($matches, 'fragment'));
-            }
-        }
     }
 
     private function getMatchValue($matches, $key)

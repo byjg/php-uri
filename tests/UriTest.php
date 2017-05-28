@@ -301,6 +301,66 @@ class UriTest extends \PHPUnit\Framework\TestCase
                     'Authority' => 'host-10.com:3306'
                 ]
             ],
+            [ // #18
+                'smtp://us#$%er:pa!*&$ss@host.com.br:45',
+                [
+                    'Scheme' => 'smtp',
+                    'Username' => 'us#$%er',
+                    'Password' => 'pa!*&$ss',
+                    'Userinfo' => 'us#$%er:pa!*&$ss',
+                    'Host' => 'host.com.br',
+                    'Port' => 45,
+                    'Path' => null,
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => 'us#$%er:pa!*&$ss@host.com.br:45'
+                ]
+            ],
+            [ // #19
+                'smtp://us:er:pass@host.com.br:45',
+                [
+                    'Scheme' => 'smtp',
+                    'Username' => 'us:er',
+                    'Password' => 'pass',
+                    'Userinfo' => 'us:er:pass',
+                    'Host' => 'host.com.br',
+                    'Port' => 45,
+                    'Path' => null,
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => 'us:er:pass@host.com.br:45'
+                ]
+            ],
+            [ // #20
+                '/some/relative/path',
+                [
+                    'Scheme' => null,
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => null,
+                    'Host' => null,
+                    'Port' => null,
+                    'Path' => '/some/relative/path',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => null
+                ]
+            ],
+            [ // #21  -> https://tools.ietf.org/html/rfc3986#section-3.2.2
+                'urn://user:pass@:123/path',
+                [
+                    'Scheme' => 'urn',
+                    'Username' => 'user',
+                    'Password' => 'pass',
+                    'Userinfo' => 'user:pass',
+                    'Host' => null,
+                    'Port' => 123,
+                    'Path' => '/path',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => 'user:pass@:123'
+                ]
+            ],
         ];
     }
 
@@ -340,6 +400,7 @@ class UriTest extends \PHPUnit\Framework\TestCase
             $uri
                 ->withScheme('http')
                 ->withHost('host.com')
+                ->__toString()
         );
     }
 
@@ -356,5 +417,4 @@ class UriTest extends \PHPUnit\Framework\TestCase
                 ->withQueryKeyValue('newkey', 'value')
         );
     }
-
 }
