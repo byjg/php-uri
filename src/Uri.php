@@ -201,34 +201,38 @@ class Uri implements UriInterface
             return;
         }
 
-        $parsed = parse_url($uri);
+        $pattern = "/^"
+            . "(?:(?P<scheme>\w+):\/\/)?"
+            . "(?:(?P<user>\S+):(?P<pass>\S+)@)?"
+            . "(?:(?P<user2>\S+)@)?"
+            . "(?:(?P<host>[\w\d\-]+(?:\.[\w\d\-]+)*))?"
+            . "(?::(?P<port>[\d]+))?"
+            . "(?P<path>[^?#]+)?"
+            . "(?:\?(?P<query>[^#]+))?"
+            . "(?:#(?P<fragment>.*))?"
+            . "$/";
+        preg_match($pattern, $uri, $parsed);
+
+        $user = $this->getFromArray($parsed, 'user');
+        if (empty($user)) {
+            $user = $this->getFromArray($parsed, 'user2');
+        }
 
         $this->withScheme($this->getFromArray($parsed, 'scheme'));
         $this->withHost($this->getFromArray($parsed, 'host'));
         $this->withPort($this->getFromArray($parsed, 'port'));
-        $this->withUserInfo($this->getFromArray($parsed, 'user'), $this->getFromArray($parsed, 'pass'));
+        $this->withUserInfo($user, $this->getFromArray($parsed, 'pass'));
         $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
         $this->withQuery($this->getFromArray($parsed, 'query'));
         $this->withFragment($this->getFromArray($parsed, 'fragment'));
+    }
 
-        $final = $this->__toString();
-        // Try recover if parse_url fails :(
-        if (empty($final)) {
-            $patScheme = "(?P<scheme>[\w\.]+)\:\/\/";
-            $patCredentials = "(?:((?P<username>\S+):(?P<password>\S+)|(?P<username2>\S+))@)?";
-            $patHost = "((?P<host>[\w\-\.,_]+)(?::(?P<port>\d+))?)?";
-            $patPath = "(?P<path>([\/\w\-\.]+))?";
-            $patQuery = "(?:\?(?P<query>(?:[\w\-\.]+=[\w\-%\.\/]+&?)*))?";
-
-            $matches = [];
-            if (preg_match("~$patScheme$patCredentials$patHost$patPath$patQuery~", $uri, $matches)) {
-                $this->withScheme($matches['scheme']);
-                $this->withUserInfo($matches['username'], $matches['password']);
-                $this->withHost($matches['host']);
-                $this->withPort($matches['port']);
-                $this->withPath($matches['path']);
-                $this->withQuery(isset($matches['query']) ? $matches['query'] : null);
-            }
+    private function getMatchValue($matches, $key)
+    {
+        if (isset($matches[$key])) {
+            return $matches[$key];
         }
+
+        return null;
     }
 }
