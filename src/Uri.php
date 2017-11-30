@@ -205,9 +205,9 @@ class Uri implements UriInterface
             . "(?:(?P<scheme>\w+):\/\/)?"
             . "(?:(?P<user>\S+):(?P<pass>\S+)@)?"
             . "(?:(?P<user2>\S+)@)?"
-            . "(?:(?P<host>[\w\d\-]+(?:\.[\w\d\-]+)*))?"
+            . "(?:(?P<host>(?![A-Za-z]:)[\w\d\-]+(?:\.[\w\d\-]+)*))?"
             . "(?::(?P<port>[\d]+))?"
-            . "(?P<path>[^?#]+)?"
+            . "(?P<path>([A-Za-z]:)?[^?#]+)?"
             . "(?:\?(?P<query>[^#]+))?"
             . "(?:#(?P<fragment>.*))?"
             . "$/";
@@ -225,14 +225,5 @@ class Uri implements UriInterface
         $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
         $this->withQuery($this->getFromArray($parsed, 'query'));
         $this->withFragment($this->getFromArray($parsed, 'fragment'));
-    }
-
-    private function getMatchValue($matches, $key)
-    {
-        if (isset($matches[$key])) {
-            return $matches[$key];
-        }
-
-        return null;
     }
 }
