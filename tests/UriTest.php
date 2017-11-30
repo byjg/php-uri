@@ -361,6 +361,66 @@ class UriTest extends \PHPUnit\Framework\TestCase
                     'Authority' => 'user:pass@:123'
                 ]
             ],
+            [ // #22
+                'sqlite://C:\\Windows\\Path\\file.db',
+                [
+                    'Scheme' => 'sqlite',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => null,
+                    'Host' => null,
+                    'Port' => null,
+                    'Path' => 'C:\\Windows\\Path\\file.db',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => null
+                ]
+            ],
+            [ // #23
+                'C:\\Windows\\Path\\file.db',
+                [
+                    'Scheme' => null,
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => null,
+                    'Host' => null,
+                    'Port' => null,
+                    'Path' => 'C:\\Windows\\Path\\file.db',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => null
+                ]
+            ],
+            [ // #24
+                'sqlite://C:/Windows/Path/file.db',
+                [
+                    'Scheme' => 'sqlite',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => null,
+                    'Host' => null,
+                    'Port' => null,
+                    'Path' => 'C:/Windows/Path/file.db',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => null
+                ]
+            ],
+            [ // #25
+                'C:/Windows/Path/file.db',
+                [
+                    'Scheme' => null,
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => null,
+                    'Host' => null,
+                    'Port' => null,
+                    'Path' => 'C:/Windows/Path/file.db',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => null
+                ]
+            ],
         ];
     }
 
