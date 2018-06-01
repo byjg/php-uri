@@ -418,6 +418,21 @@ class UriTest extends TestCase
                     'Authority' => null
                 ]
             ],
+            [ // #16
+                'mysql://root@host-10.com:3306/database?ca=%2Fpath%2Fto%2Fca&ssl=%2Fpath%2Fto%2Fssl',
+                [
+                    'Scheme' => 'mysql',
+                    'Username' => 'root',
+                    'Password' => null,
+                    'Userinfo' => 'root',
+                    'Host' => 'host-10.com',
+                    'Port' => 3306,
+                    'Path' => '/database',
+                    'Query' => 'ca=%2Fpath%2Fto%2Fca&ssl=%2Fpath%2Fto%2Fssl',
+                    'Fragment' => null,
+                    'Authority' => 'root@host-10.com:3306'
+                ]
+            ],
         ];
     }
 
