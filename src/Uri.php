@@ -203,7 +203,7 @@ class Uri implements UriInterface
 
         $pattern = "/^"
             . "(?:(?P<scheme>\w+):\/\/)?"
-            . "(?:(?P<user>\S+):(?P<pass>\S+)@)?"
+            . "(?:(?P<user>\S+?):(?P<pass>\S+)@)?"
             . "(?:(?P<user2>\S+)@)?"
             . "(?:(?P<host>(?![A-Za-z]:)[\w\d\-]+(?:\.[\w\d\-]+)*))?"
             . "(?::(?P<port>[\d]+))?"

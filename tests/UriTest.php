@@ -418,7 +418,7 @@ class UriTest extends TestCase
                     'Authority' => null
                 ]
             ],
-            [ // #16
+            [ // #26
                 'mysql://root@host-10.com:3306/database?ca=%2Fpath%2Fto%2Fca&ssl=%2Fpath%2Fto%2Fssl',
                 [
                     'Scheme' => 'mysql',
@@ -431,6 +431,21 @@ class UriTest extends TestCase
                     'Query' => 'ca=%2Fpath%2Fto%2Fca&ssl=%2Fpath%2Fto%2Fssl',
                     'Fragment' => null,
                     'Authority' => 'root@host-10.com:3306'
+                ]
+            ],
+            [ // #27
+                'http://user:O=+9zLZ}%{z+:tC@host/path',
+                [
+                    'Scheme' => 'http',
+                    'Username' => "user",
+                    'Password' => "O=+9zLZ}%{z+:tC",
+                    'Userinfo' => "user:O=+9zLZ}%{z+:tC",
+                    'Host' => "host",
+                    'Port' => null,
+                    'Path' => '/path',
+                    'Query' => null,
+                    'Fragment' => null,
+                    'Authority' => "user:O=+9zLZ}%{z+:tC@host"
                 ]
             ],
         ];
@@ -488,5 +503,14 @@ class UriTest extends TestCase
                 ->withQueryKeyValue('key', 'newvalue')
                 ->withQueryKeyValue('newkey', 'value')
         );
+    }
+
+    public function testWithUrlEncoding()
+    {
+        $uri = (new Uri('http://example.com/path/to?q=foo%20bar#section-42'))
+            ->withUserInfo('user', "O=+9zLZ}%{z+:tC");
+
+        $this->assertEquals("user", $uri->getUsername());
+        $this->assertEquals("O=+9zLZ}%{z+:tC", $uri->getPassword());
     }
 }
