@@ -317,8 +317,8 @@ class UriTest extends TestCase
                 'smtp://us:er:pass@host.com.br:45',
                 [
                     'Scheme' => 'smtp',
-                    'Username' => 'us:er',
-                    'Password' => 'pass',
+                    'Username' => 'us',
+                    'Password' => 'er:pass',
                     'Userinfo' => 'us:er:pass',
                     'Host' => 'host.com.br',
                     'Port' => 45,
