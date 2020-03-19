@@ -37,7 +37,7 @@ class Uri implements UriInterface
     public function getUserInfo()
     {
         return $this->username
-            . (!empty($this->password) ? ':' . $this->password : '' );
+            . (!empty($this->password) ? ':' . rawurlencode($this->password) : '' );
     }
 
     /**

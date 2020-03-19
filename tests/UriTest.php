@@ -2,6 +2,7 @@
 
 namespace ByJG\Util;
 
+use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
 
 class UriTest extends TestCase
@@ -184,13 +185,14 @@ class UriTest extends TestCase
                     'Scheme' => 'mysql',
                     'Username' => 'ro@11!%&*(ot',
                     'Password' => 'pass@(*&!$$word',
-                    'Userinfo' => 'ro@11!%&*(ot:pass@(*&!$$word',
+                    'Userinfo' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word',
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extraparam=10',
                     'Fragment' => null,
-                    'Authority' => 'ro@11!%&*(ot:pass@(*&!$$word@host-10.com:3306'
+                    'Authority' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306',
+                    'ToString' => 'mysql://ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extraparam=10'
                 ]
             ],
             [ // #11
@@ -304,13 +306,14 @@ class UriTest extends TestCase
                     'Scheme' => 'smtp',
                     'Username' => 'us#$%er',
                     'Password' => 'pa!*&$ss',
-                    'Userinfo' => 'us#$%er:pa!*&$ss',
+                    'Userinfo' => 'us#$%er:pa%21%2A%26%24ss',
                     'Host' => 'host.com.br',
                     'Port' => 45,
                     'Path' => null,
                     'Query' => null,
                     'Fragment' => null,
-                    'Authority' => 'us#$%er:pa!*&$ss@host.com.br:45'
+                    'Authority' => 'us#$%er:pa%21%2A%26%24ss@host.com.br:45',
+                    'ToString' => 'smtp://us#$%er:pa%21%2A%26%24ss@host.com.br:45',
                 ]
             ],
             [ // #19
@@ -319,13 +322,14 @@ class UriTest extends TestCase
                     'Scheme' => 'smtp',
                     'Username' => 'us',
                     'Password' => 'er:pass',
-                    'Userinfo' => 'us:er:pass',
+                    'Userinfo' => 'us:er%3Apass',
                     'Host' => 'host.com.br',
                     'Port' => 45,
                     'Path' => null,
                     'Query' => null,
                     'Fragment' => null,
-                    'Authority' => 'us:er:pass@host.com.br:45'
+                    'Authority' => 'us:er%3Apass@host.com.br:45',
+                    'ToString' => 'smtp://us:er%3Apass@host.com.br:45',
                 ]
             ],
             [ // #20
@@ -439,16 +443,28 @@ class UriTest extends TestCase
                     'Scheme' => 'http',
                     'Username' => "user",
                     'Password' => "O=+9zLZ}%{z+:tC",
-                    'Userinfo' => "user:O=+9zLZ}%{z+:tC",
+                    'Userinfo' => "user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC",
                     'Host' => "host",
                     'Port' => null,
                     'Path' => '/path',
                     'Query' => null,
                     'Fragment' => null,
-                    'Authority' => "user:O=+9zLZ}%{z+:tC@host"
+                    'Authority' => "user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host",
+                    'ToString' => 'http://user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host/path',
                 ]
             ],
         ];
+    }
+    
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParseScheme($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Scheme"], $uri->getScheme());
     }
 
     /**
@@ -456,14 +472,111 @@ class UriTest extends TestCase
      * @param $uriStr
      * @param null $assertFields
      */
-    public function testParse($uriStr, $assertFields = null)
+    public function testParseUsername($uriStr, $assertFields = null)
     {
         $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Username"], $uri->getUsername());
+    }
 
-        foreach ((array)$assertFields as $field => $expected) {
-            $this->assertEquals($expected, $uri->{"get" . $field}(), 'Method ' . "get" . $field);
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParsePassword($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Password"], $uri->getPassword());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParseUserinfo($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Userinfo"], $uri->getUserinfo());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParseHost($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Host"], $uri->getHost());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParsePort($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Port"], $uri->getPort());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParsePath($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Path"], $uri->getPath());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParseQuery($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Query"], $uri->getQuery());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParseFragment($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Fragment"], $uri->getFragment());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParseAuthority($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertEquals($assertFields["Authority"], $uri->getAuthority());
+    }
+
+    /**
+     * @dataProvider uriProvider
+     * @param $uriStr
+     * @param null $assertFields
+     */
+    public function testParseToString($uriStr, $assertFields = null)
+    {
+        $uri = new Uri($uriStr);
+        if (isset($assertFields['ToString'])) {
+            $uriStr = $assertFields['ToString'];
         }
-
         $this->assertEquals($uriStr, $uri->__toString());
     }
 
@@ -491,7 +604,7 @@ class UriTest extends TestCase
         );
     }
 
-    public function testChangeParaemters()
+    public function testChangeParameters()
     {
         $uri = new Uri('http://foo-host.com/path?key=value&otherkey=othervalue#fragment');
 
@@ -512,5 +625,6 @@ class UriTest extends TestCase
 
         $this->assertEquals("user", $uri->getUsername());
         $this->assertEquals("O=+9zLZ}%{z+:tC", $uri->getPassword());
+        $this->assertEquals('user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC', $uri->getUserInfo());
     }
 }
