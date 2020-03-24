@@ -453,6 +453,38 @@ class UriTest extends TestCase
                     'ToString' => 'http://user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host/path',
                 ]
             ],
+            [ // #28
+                'http://host/path?key=value 1&key2=á%1$@a#fra%!',
+                [
+                    'Scheme' => 'http',
+                    'Username' => "",
+                    'Password' => "",
+                    'Userinfo' => "",
+                    'Host' => "host",
+                    'Port' => null,
+                    'Path' => '/path',
+                    'Query' => 'key=value%201&key2=%C3%A1%251%24%40a',
+                    'Fragment' => 'fra%!',
+                    'Authority' => "host",
+                    'ToString' => 'http://host/path?key=value%201&key2=%C3%A1%251%24%40a#fra%!',
+                ]
+            ],
+            [ // #29
+                'http://example.com/path/to?q=foo bar&q2=foo%20bar&q3=abc%3D%41#section-42',
+                [
+                    'Scheme' => 'http',
+                    'Username' => "",
+                    'Password' => "",
+                    'Userinfo' => "",
+                    'Host' => "example.com",
+                    'Port' => null,
+                    'Path' => '/path/to',
+                    'Query' => 'q=foo%20bar&q2=foo%20bar&q3=abc%3DA',
+                    'Fragment' => 'section-42',
+                    'Authority' => "example.com",
+                    'ToString' => 'http://example.com/path/to?q=foo%20bar&q2=foo%20bar&q3=abc%3DA#section-42',
+                ]
+            ],
         ];
     }
     
@@ -584,7 +616,7 @@ class UriTest extends TestCase
     {
         $this->assertEquals(
             'http://host.com:1234',
-            (new Uri())
+            Uri::getInstanceFromString()
                 ->withScheme('http')
                 ->withHost('host.com')
                 ->withPort('1234')
@@ -618,13 +650,34 @@ class UriTest extends TestCase
         );
     }
 
+    public function testFactory()
+    {
+        $uriString = 'http://user:pass/path?query=1#fragment';
+        $uri = Uri::getInstanceFromString($uriString);
+        $this->assertEquals($uriString, $uri->__toString());
+
+        $uri2 = Uri::getInstanceFromUri($uri);
+        $this->assertEquals($uriString, $uri2->__toString());
+    }
+
     public function testWithUrlEncoding()
     {
-        $uri = (new Uri('http://example.com/path/to?q=foo%20bar#section-42'))
+        $uri = Uri::getInstanceFromString('http://example.com/path/to?q=foo%20bar#section-42')
             ->withUserInfo('user', "O=+9zLZ}%{z+:tC");
 
+        $this->assertEquals("q=foo%20bar", $uri->getQuery());
         $this->assertEquals("user", $uri->getUsername());
         $this->assertEquals("O=+9zLZ}%{z+:tC", $uri->getPassword());
         $this->assertEquals('user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC', $uri->getUserInfo());
+    }
+
+    public function testWithQueryValue()
+    {
+        $uri = Uri::getInstanceFromString("http://example.com")
+            ->withQueryKeyValue("q", "abc")
+            ->withQueryKeyValue("q1", "abc%3D%41")
+            ->withQueryKeyValue("q2", "abc%3D%41", true);
+
+        $this->assertEquals("q=abc&q1=abc%253D%2541&q2=abc%3DA", $uri->getQuery());
     }
 }
