@@ -37,7 +37,7 @@ class Uri implements UriInterface
     public function getUserInfo()
     {
         return $this->username
-            . (!empty($this->password) ? ':' . $this->password : '' );
+            . (!empty($this->password) ? ':' . rawurlencode($this->password) : '' );
     }
 
     /**
@@ -110,18 +110,18 @@ class Uri implements UriInterface
 
     public function getQuery()
     {
-        return http_build_query($this->query);
+        return http_build_query($this->query, null, "&", PHP_QUERY_RFC3986);
     }
 
     /**
      * @param string $key
      * @param string|array $value
-     * @param bool $encode
+     * @param bool $isEncoded
      * @return $this
      */
-    public function withQueryKeyValue($key, $value, $encode = true)
+    public function withQueryKeyValue($key, $value, $isEncoded = false)
     {
-        $this->query[$key] = ($encode ? urlencode($value) : $value);
+        $this->query[$key] = ($isEncoded ? rawurldecode($value) : $value);
         return $this;
     }
 
@@ -203,7 +203,7 @@ class Uri implements UriInterface
 
         $pattern = "/^"
             . "(?:(?P<scheme>\w+):\/\/)?"
-            . "(?:(?P<user>\S+):(?P<pass>\S+)@)?"
+            . "(?:(?P<user>\S+?):(?P<pass>\S+)@)?"
             . "(?:(?P<user2>\S+)@)?"
             . "(?:(?P<host>(?![A-Za-z]:)[\w\d\-]+(?:\.[\w\d\-]+)*))?"
             . "(?::(?P<port>[\d]+))?"
@@ -225,5 +225,15 @@ class Uri implements UriInterface
         $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
         $this->withQuery($this->getFromArray($parsed, 'query'));
         $this->withFragment($this->getFromArray($parsed, 'fragment'));
+    }
+
+    public static function getInstanceFromString($uriString = null)
+    {
+        return new Uri($uriString);
+    }
+
+    public static function getInstanceFromUri(UriInterface $uri)
+    {
+        return new Uri((string)$uri);
     }
 }
