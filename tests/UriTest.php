@@ -660,6 +660,35 @@ class UriTest extends TestCase
         $this->assertEquals($uriString, $uri2->__toString());
     }
 
+    public function testFactory2()
+    {
+        $uri = Uri::getInstanceFromString('http://example.com/path/to?q=foo%20bar#section-42')
+            ->withUserInfo('user', "O=+9%20zLZ}%{z+:tC");
+
+        $uri2 = \ByJG\Util\Uri::getInstanceFromString('http://user:O=+9%2520zLZ}%{z+:tC@example.com/path/to?q=foo%20bar#section-42');
+
+        $uri3 = \ByJG\Util\Uri::getInstanceFromUri($uri);
+
+        $uri4 = \ByJG\Util\Uri::getInstanceFromString((string)$uri);
+
+        $this->assertSame((string)$uri, (string)$uri2);
+        $this->assertSame((string)$uri2, (string)$uri3);
+        $this->assertSame((string)$uri3, (string)$uri4);
+    }
+
+    public function testRFC3986()
+    {
+        $uri = Uri::getInstanceFromString("http://user:pa&@host");
+        $this->assertEquals("http://user:pa%26@host", (string)$uri);
+
+        $uri = Uri::getInstanceFromString("http://user:pa%26@host");
+        $this->assertEquals("http://user:pa%26@host", (string)$uri);
+
+        $uri = Uri::getInstanceFromString("http://host")
+            ->withUserInfo("user", "pa%26");
+        $this->assertEquals("http://user:pa%2526@host", (string)$uri);
+    }
+
     public function testWithUrlEncoding()
     {
         $uri = Uri::getInstanceFromString('http://example.com/path/to?q=foo%20bar#section-42')
