@@ -15,7 +15,7 @@ class Uri implements UriInterface
 
     public function withScheme($value)
     {
-        $this->scheme = $value;
+        $this->scheme = strtolower($value);
         return $this;
     }
 
@@ -221,7 +221,7 @@ class Uri implements UriInterface
         $this->withScheme($this->getFromArray($parsed, 'scheme'));
         $this->withHost($this->getFromArray($parsed, 'host'));
         $this->withPort($this->getFromArray($parsed, 'port'));
-        $this->withUserInfo($user, $this->getFromArray($parsed, 'pass'));
+        $this->withUserInfo($user, rawurldecode($this->getFromArray($parsed, 'pass')));
         $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
         $this->withQuery($this->getFromArray($parsed, 'query'));
         $this->withFragment($this->getFromArray($parsed, 'fragment'));
@@ -234,6 +234,6 @@ class Uri implements UriInterface
 
     public static function getInstanceFromUri(UriInterface $uri)
     {
-        return new Uri((string)$uri);
+        return self::getInstanceFromString((string)$uri);
     }
 }
