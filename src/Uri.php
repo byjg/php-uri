@@ -15,8 +15,9 @@ class Uri implements UriInterface
 
     public function withScheme($value)
     {
-        $this->scheme = strtolower($value);
-        return $this;
+        $clone = clone $this;
+        $clone->scheme = strtolower($value);
+        return $clone;
     }
 
     public function getScheme()
@@ -29,9 +30,10 @@ class Uri implements UriInterface
 
     public function withUserInfo($user, $password = null)
     {
-        $this->username = $user;
-        $this->password = $password;
-        return $this;
+        $clone = clone $this;
+        $clone->username = $user;
+        $clone->password = $password;
+        return $clone;
     }
 
     public function getUserInfo()
@@ -60,8 +62,9 @@ class Uri implements UriInterface
 
     public function withHost($value)
     {
-        $this->host = $value;
-        return $this;
+        $clone = clone $this;
+        $clone->host = $value;
+        return $clone;
     }
 
     public function getHost()
@@ -77,8 +80,9 @@ class Uri implements UriInterface
      */
     public function withPort($value)
     {
-        $this->port = $value;
-        return $this;
+        $clone = clone $this;
+        $clone->port = $value;
+        return $clone;
     }
 
     public function getPort()
@@ -90,8 +94,9 @@ class Uri implements UriInterface
 
     public function withPath($value)
     {
-        $this->path = $value;
-        return $this;
+        $clone = clone $this;
+        $clone->path = $value;
+        return $clone;
     }
 
     public function getPath()
@@ -102,6 +107,13 @@ class Uri implements UriInterface
     private $query = [];
 
     public function withQuery($query)
+    {
+        $clone = clone $this;
+        $clone->setQuery($query);
+        return $clone;
+    }
+
+    protected function setQuery($query)
     {
         parse_str($query, $this->query);
         return $this;
@@ -121,8 +133,9 @@ class Uri implements UriInterface
      */
     public function withQueryKeyValue($key, $value, $isEncoded = false)
     {
-        $this->query[$key] = ($isEncoded ? rawurldecode($value) : $value);
-        return $this;
+        $clone = clone $this;
+        $clone->query[$key] = ($isEncoded ? rawurldecode($value) : $value);
+        return $clone;
     }
 
     /**
@@ -154,8 +167,9 @@ class Uri implements UriInterface
 
     public function withFragment($fragment)
     {
-        $this->fragment = $fragment;
-        return $this;
+        $clone = clone $this;
+        $clone->fragment = $fragment;
+        return $clone;
     }
 
     public function getAuthority()
@@ -218,13 +232,14 @@ class Uri implements UriInterface
             $user = $this->getFromArray($parsed, 'user2');
         }
 
-        $this->withScheme($this->getFromArray($parsed, 'scheme'));
-        $this->withHost($this->getFromArray($parsed, 'host'));
-        $this->withPort($this->getFromArray($parsed, 'port'));
-        $this->withUserInfo($user, rawurldecode($this->getFromArray($parsed, 'pass')));
-        $this->withPath(preg_replace('~^//~', '', $this->getFromArray($parsed, 'path')));
-        $this->withQuery($this->getFromArray($parsed, 'query'));
-        $this->withFragment($this->getFromArray($parsed, 'fragment'));
+        $this->scheme = $this->getFromArray($parsed, 'scheme');
+        $this->host = $this->getFromArray($parsed, 'host');
+        $this->port = $this->getFromArray($parsed, 'port');
+        $this->username = $user;
+        $this->password = rawurldecode($this->getFromArray($parsed, 'pass'));
+        $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path'));
+        $this->setQuery($this->getFromArray($parsed, 'query'));
+        $this->fragment = $this->getFromArray($parsed, 'fragment');
     }
 
     public static function getInstanceFromString($uriString = null)

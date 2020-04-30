@@ -652,7 +652,7 @@ class UriTest extends TestCase
 
     public function testFactory()
     {
-        $uriString = 'http://user:pass/path?query=1#fragment';
+        $uriString = 'http://user:pass@host/path?query=1#fragment';
         $uri = Uri::getInstanceFromString($uriString);
         $this->assertEquals($uriString, $uri->__toString());
 
@@ -708,5 +708,45 @@ class UriTest extends TestCase
             ->withQueryKeyValue("q2", "abc%3D%41", true);
 
         $this->assertEquals("q=abc&q1=abc%253D%2541&q2=abc%3DA", $uri->getQuery());
+    }
+
+    public function testImmutable()
+    {
+        $uri = new Uri();
+
+        // With Host
+        $uri1 = $uri->withHost("host");
+        $this->assertEquals("", $uri->getHost());
+        $this->assertEquals("host", $uri1->getHost());
+
+        // With Path
+        $uri2 = $uri->withPath("/path");
+        $this->assertEquals("", $uri->getPath());
+        $this->assertEquals("/path", $uri2->getPath());
+
+        // With Port
+        $uri3 = $uri->withPort(8080);
+        $this->assertEquals("", $uri->getPort());
+        $this->assertEquals(8080, $uri3->getPort());
+
+        // With Scheme
+        $uri4 = $uri->withScheme("https");
+        $this->assertEquals("", $uri->getScheme());
+        $this->assertEquals("https", $uri4->getScheme());
+
+        // WithUserInfo
+        $uri5 = $uri->withUserInfo("user", "pwd");
+        $this->assertEquals("", $uri->getUserInfo());
+        $this->assertEquals("user:pwd", $uri5->getUserInfo());
+
+        // WithQuery
+        $uri6 = $uri->withQuery("a=1&b=2");
+        $this->assertEquals("", $uri->getQuery());
+        $this->assertEquals("a=1&b=2", $uri6->getQuery());
+
+        // WithFragment
+        $uri7 = $uri->withFragment("fragment");
+        $this->assertEquals("", $uri->getFragment());
+        $this->assertEquals("fragment", $uri7->getFragment());
     }
 }
