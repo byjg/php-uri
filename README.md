@@ -1,7 +1,12 @@
 # Uri class
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/uri/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/uri/?branch=master)
-[![Build Status](https://travis-ci.org/byjg/uri.svg?branch=master)](https://travis-ci.org/byjg/uri)
+[![Build Status](https://travis-ci.com/byjg/uri.svg?branch=master)](https://travis-ci.com/byjg/uri)
+[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
+[![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/uri/)
+[![GitHub license](https://img.shields.io/github/license/byjg/uri.svg)](https://opensource.byjg.com/opensource/licensing.html)
+[![GitHub release](https://img.shields.io/github/release/byjg/uri.svg)](https://github.com/byjg/uri/releases/)
+
 
 An implementation of PSR-7 UriInterface
 
@@ -24,7 +29,8 @@ print((string)$uri); // Will print "http://user:pa%2526@host"
 
 ## Custom methods
 
-This class is fully compliant with the PSR UriInterface (PSR-7) but implement some useful extra methods:
+This class is fully compliant with the PSR UriInterface (PSR-7) but implement some useful extra methods
+(interface \ByJG\Util\CustomUriInterface):
 
 - getUsername()
 - getPassword()
@@ -35,4 +41,5 @@ This class is fully compliant with the PSR UriInterface (PSR-7) but implement so
 More information about UriInterface:
 https://github.com/php-fig/http-message/blob/master/src/UriInterface.php
 
-
+----
+[Open source ByJG](http://opensource.byjg.com)

@@ -1,5 +1,7 @@
 language: php
 php:
+  - "8.0"
+  - "7.4"
   - "7.3"
   - "7.2"
   - "7.1"
@@ -12,3 +14,9 @@ install:
 script: 
   - vendor/bin/phpunit
 
+jobs:
+  include:
+    - stage: documentation
+      if: (branch = master) AND (NOT (type IN (pull_request)))
+      install: skip
+      script: "curl https://opensource.byjg.com/add-doc.sh | bash /dev/stdin php uri"
