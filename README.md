@@ -29,8 +29,8 @@ print((string)$uri); // Will print "http://user:pa%2526@host"
 
 ## Custom methods
 
-This class is fully compliant with the PSR UriInterface (PSR-7) but implement some useful extra methods
-(interface \ByJG\Util\CustomUriInterface):
+This class is fully compliant with the PSR UriInterface (PSR-7), but it implements some useful extra methods in
+the interface \ByJG\Util\CustomUriInterface:
 
 - getUsername()
 - getPassword()
