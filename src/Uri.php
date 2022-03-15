@@ -122,7 +122,7 @@ class Uri implements UriInterface, CustomUriInterface
 
     public function getQuery()
     {
-        return http_build_query($this->query, null, "&", PHP_QUERY_RFC3986);
+        return http_build_query($this->query, "", "&", PHP_QUERY_RFC3986);
     }
 
     /**
@@ -149,13 +149,13 @@ class Uri implements UriInterface, CustomUriInterface
         return $this->getFromArray($this->query, $key);
     }
 
-    private function getFromArray($array, $key)
+    private function getFromArray($array, $key, $default = null)
     {
         if (isset($array[$key])) {
             return $array[$key];
         }
 
-        return null;
+        return $default;
     }
 
     private $fragment;
@@ -238,7 +238,7 @@ class Uri implements UriInterface, CustomUriInterface
         $this->username = $user;
         $this->password = rawurldecode($this->getFromArray($parsed, 'pass'));
         $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path'));
-        $this->setQuery($this->getFromArray($parsed, 'query'));
+        $this->setQuery($this->getFromArray($parsed, 'query', ""));
         $this->fragment = $this->getFromArray($parsed, 'fragment');
     }
 
