@@ -28,4 +28,4 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           composer install
-          ./vendor/bin/phpunitk
+          ./vendor/bin/phpunit
