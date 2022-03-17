@@ -35,6 +35,6 @@ jobs:
     needs: Build
     if: github.ref == 'refs/heads/master'
     env:
-      DOC_GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      DOC_GITHUB_TOKEN: '${{ secrets.DOC_TOKEN }}'
     steps:
       - run: curl https://opensource.byjg.com/add-doc.sh | bash /dev/stdin php uri
