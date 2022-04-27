@@ -544,7 +544,7 @@ class UriTest extends TestCase
     public function testParsePath($uriStr, $assertFields = null)
     {
         $uri = new Uri($uriStr);
-        $this->assertEquals($assertFields["Path"], $uri->getPath());
+        $this->assertSame($assertFields["Path"], $uri->getPath());
     }
 
     /**
