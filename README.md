@@ -7,7 +7,6 @@
 [![GitHub license](https://img.shields.io/github/license/byjg/uri.svg)](https://opensource.byjg.com/opensource/licensing.html)
 [![GitHub release](https://img.shields.io/github/release/byjg/uri.svg)](https://github.com/byjg/uri/releases/)
 
-
 An implementation of PSR-7 UriInterface
 
 PSR-7 requires URI compliant to RFC3986. It means the URI output will be always url encoded. The same is valid to create a new instance.
@@ -37,9 +36,8 @@ the interface \ByJG\Util\CustomUriInterface:
 - getQueryPart($key)
 - withQueryKeyValue($key, $value, $encode = true)
 
-
 More information about UriInterface:
-https://github.com/php-fig/http-message/blob/master/src/UriInterface.php
+<https://github.com/php-fig/http-message/blob/master/src/UriInterface.php>
 
 ----
 [Open source ByJG](http://opensource.byjg.com)
