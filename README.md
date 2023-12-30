@@ -39,5 +39,12 @@ the interface \ByJG\Util\CustomUriInterface:
 More information about UriInterface:
 <https://github.com/php-fig/http-message/blob/master/src/UriInterface.php>
 
+## Dependencies
+
+```mermaid
+flowchart TD
+    URI --> psr/http-message
+```
+
 ----
 [Open source ByJG](http://opensource.byjg.com)
