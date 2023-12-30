@@ -43,7 +43,7 @@ More information about UriInterface:
 
 ```mermaid
 flowchart TD
-    URI --> psr/http-message
+    byjg/uri --> psr/http-message
 ```
 
 ----
