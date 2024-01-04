@@ -39,6 +39,18 @@ the interface \ByJG\Util\CustomUriInterface:
 More information about UriInterface:
 <https://github.com/php-fig/http-message/blob/master/src/UriInterface.php>
 
+## Install
+
+```bash
+composer require "byjg/uri"
+```
+
+## Unit tests
+
+```bash
+vendor/bin/phpunit
+```
+
 ## Dependencies
 
 ```mermaid
