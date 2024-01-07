@@ -6,8 +6,8 @@ namespace ByJG\Util;
 
 interface CustomUriInterface
 {
-    public function getUsername();
-    public function getPassword();
-    public function getQueryPart($key);
-    public function withQueryKeyValue($key, $value, $isEncoded = true);
+    public function getUsername(): ?string;
+    public function getPassword(): ?string;
+    public function getQueryPart(string $key): string;
+    public function withQueryKeyValue(string $key, string $value, bool $isEncoded = true): self;
 }
