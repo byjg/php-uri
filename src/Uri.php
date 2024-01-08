@@ -142,9 +142,9 @@ class Uri implements UriInterface, CustomUriInterface
      * Not from UriInterface
      *
      * @param $key
-     * @return string
+     * @return ?string
      */
-    public function getQueryPart($key): string
+    public function getQueryPart($key): ?string
     {
         return $this->getFromArray($this->query, $key, null);
     }
