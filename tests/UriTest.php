@@ -1,8 +1,8 @@
 <?php
 
-namespace ByJG\Util;
+namespace Test;
 
-use PHPUnit\Framework\ExpectationFailedException;
+use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
 
 class UriTest extends TestCase
@@ -730,5 +730,14 @@ class UriTest extends TestCase
         $uri7 = $uri->withFragment("fragment");
         $this->assertEquals("", $uri->getFragment());
         $this->assertEquals("fragment", $uri7->getFragment());
+    }
+
+    public function testGetFromArray()
+    {
+        $uri = new Uri("http://server/path?query=abc&arg#fragment");
+
+        $this->assertEquals("abc", $uri->getQueryPart("query"));
+        $this->assertSame("", $uri->getQueryPart("arg"));
+        $this->assertNull($uri->getQueryPart("other"));
     }
 }
