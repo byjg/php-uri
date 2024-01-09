@@ -151,12 +151,14 @@ class Uri implements UriInterface, CustomUriInterface
 
     private function getFromArray($array, $key, $default): ?string
     {
-        if (isset($array[$key])) {
-            return empty($array[$key]) ? $default : $array[$key];
-        }
-
-        return $default;
+        return $array[$key] ?? $default;
     }
+
+    private function getIntFromArray($array, $key): ?int
+    {
+        return empty($array[$key]) ? null : intval($array[$key]);
+    }
+
 
     private string $fragment = "";
 
@@ -234,7 +236,7 @@ class Uri implements UriInterface, CustomUriInterface
 
         $this->scheme = $this->getFromArray($parsed, 'scheme', "");
         $this->host = $this->getFromArray($parsed, 'host', "");
-        $this->port = $this->getFromArray($parsed, 'port', null);
+        $this->port = $this->getIntFromArray($parsed, 'port');
         $this->username = $user;
         $this->password = rawurldecode($this->getFromArray($parsed, 'pass', ""));
         $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', ""));
