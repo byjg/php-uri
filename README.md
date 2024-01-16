@@ -37,7 +37,7 @@ the interface \ByJG\Util\CustomUriInterface:
 - withQueryKeyValue($key, $value, $encode = true)
 
 More information about UriInterface:
-<https://github.com/php-fig/http-message/blob/master/src/UriInterface.php>
+[https://github.com/php-fig/http-message/blob/master/src/UriInterface.php](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php)
 
 ## Install
 
