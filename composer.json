@@ -9,7 +9,7 @@
   "prefer-stable": true,
   "minimum-stability": "dev",
   "require": {
-    "php": ">=5.4.0",
+    "php": ">=7.2.0",
     "psr/http-message": "^2.0"
   },
   "require-dev": {
