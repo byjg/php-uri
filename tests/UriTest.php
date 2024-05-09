@@ -97,7 +97,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => '/home/user/file.txt',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => null
                 ]
             ],
@@ -112,7 +112,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => '/home/user/file.txt',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => null
                 ]
             ],
@@ -127,7 +127,7 @@ class UriTest extends TestCase
                     'Host' => 'hostname.com',
                     'Path' => '',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'hostname.com:443'
                 ]
             ],
@@ -157,7 +157,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extraparam=10',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'root:password@host-10.com:3306'
                 ]
             ],
@@ -172,7 +172,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extraparam=10',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306',
                     'ToString' => 'mysql://ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extraparam=10'
                 ]
@@ -188,7 +188,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extraparam=10',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'root@host-10.com:3306'
                 ]
             ],
@@ -203,7 +203,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extraparam=10',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'root@host-10.com:3306'
                 ]
             ],
@@ -218,7 +218,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extraparam=10',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'host-10.com:3306'
                 ]
             ],
@@ -233,7 +233,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => '/database',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'host-10.com'
                 ]
             ],
@@ -248,7 +248,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'host-10.com:3306'
                 ]
             ],
@@ -263,7 +263,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '',
                     'Query' => 'extraparam=10',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'host-10.com:3306'
                 ]
             ],
@@ -278,7 +278,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '',
                     'Query' => 'extraparam=10&other=20',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'host-10.com:3306'
                 ]
             ],
@@ -293,7 +293,7 @@ class UriTest extends TestCase
                     'Port' => 45,
                     'Path' => '',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'us#$%er:pa%21%2A%26%24ss@host.com.br:45',
                     'ToString' => 'smtp://us#$%er:pa%21%2A%26%24ss@host.com.br:45',
                 ]
@@ -309,7 +309,7 @@ class UriTest extends TestCase
                     'Port' => 45,
                     'Path' => '',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'us:er%3Apass@host.com.br:45',
                     'ToString' => 'smtp://us:er%3Apass@host.com.br:45',
                 ]
@@ -325,7 +325,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => '/some/relative/path',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => null
                 ]
             ],
@@ -340,7 +340,7 @@ class UriTest extends TestCase
                     'Port' => 123,
                     'Path' => '/path',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'user:pass@:123'
                 ]
             ],
@@ -355,7 +355,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => 'C:\\Windows\\Path\\file.db',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => null
                 ]
             ],
@@ -370,7 +370,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => 'C:\\Windows\\Path\\file.db',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => null
                 ]
             ],
@@ -385,7 +385,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => 'C:/Windows/Path/file.db',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => null
                 ]
             ],
@@ -400,7 +400,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => 'C:/Windows/Path/file.db',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => null
                 ]
             ],
@@ -415,7 +415,7 @@ class UriTest extends TestCase
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'ca=%2Fpath%2Fto%2Fca&ssl=%2Fpath%2Fto%2Fssl',
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => 'root@host-10.com:3306'
                 ]
             ],
@@ -430,7 +430,7 @@ class UriTest extends TestCase
                     'Port' => null,
                     'Path' => '/path',
                     'Query' => null,
-                    'Fragment' => null,
+                    'Fragment' => '',
                     'Authority' => "user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host",
                     'ToString' => 'http://user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host/path',
                 ]
@@ -469,7 +469,7 @@ class UriTest extends TestCase
             ],
         ];
     }
-    
+
     /**
      * @dataProvider uriProvider
      * @param $uriStr
@@ -541,7 +541,7 @@ class UriTest extends TestCase
      * @param $uriStr
      * @param null $assertFields
      */
-    public function testParsePath($uriStr, $assertFields = null)
+    public function testParsePath($uriStr, $assertFields = '')
     {
         $uri = new Uri($uriStr);
         $this->assertSame($assertFields["Path"], $uri->getPath());
