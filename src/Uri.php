@@ -9,9 +9,12 @@ use Psr\Http\Message\UriInterface;
  */
 class Uri implements UriInterface, CustomUriInterface
 {
-
-
-    private string $scheme = "";
+    private string $host = '';
+    private string $fragment = '';
+    private string $path = '';
+    private string $scheme = '';
+    private ?int $port = null;
+    private array $query = [];
 
     public function withScheme(string $scheme): UriInterface
     {
@@ -58,8 +61,6 @@ class Uri implements UriInterface, CustomUriInterface
         return $this->password;
     }
 
-    private string $host = "";
-
     public function withHost(string $host): UriInterface
     {
         $clone = clone $this;
@@ -71,8 +72,6 @@ class Uri implements UriInterface, CustomUriInterface
     {
         return $this->host;
     }
-
-    private ?int $port = null;
 
     /**
      * @param int|null $port
@@ -90,8 +89,6 @@ class Uri implements UriInterface, CustomUriInterface
         return $this->port;
     }
 
-    private string $path = "";
-
     public function withPath(string $path): UriInterface
     {
         $clone = clone $this;
@@ -103,8 +100,6 @@ class Uri implements UriInterface, CustomUriInterface
     {
         return $this->path;
     }
-
-    private array $query = [];
 
     public function withQuery(string $query): UriInterface
     {
@@ -158,9 +153,6 @@ class Uri implements UriInterface, CustomUriInterface
     {
         return empty($array[$key]) ? null : intval($array[$key]);
     }
-
-
-    private string $fragment = "";
 
     public function getFragment(): string
     {
