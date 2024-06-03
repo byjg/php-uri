@@ -20,5 +20,8 @@
       "Test\\": "tests/"
     }
   },
+  "provide": {
+    "psr/http-message-implementation": "1.0"
+  },
   "license": "MIT"
 }

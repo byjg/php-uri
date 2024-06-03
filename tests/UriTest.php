@@ -740,4 +740,11 @@ class UriTest extends TestCase
         $this->assertSame("", $uri->getQueryPart("arg"));
         $this->assertNull($uri->getQueryPart("other"));
     }
+
+    public function testHasQueryKey()
+    {
+        $uri = new Uri('http://example.com/path/to?q=foo%20bar#section-42');
+        $this->assertTrue($uri->hasQueryKey('q'));
+        $this->assertFalse($uri->hasQueryKey('q2'));
+    }
 }
