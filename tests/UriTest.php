@@ -731,4 +731,11 @@ class UriTest extends TestCase
         $this->assertEquals("", $uri->getFragment());
         $this->assertEquals("fragment", $uri7->getFragment());
     }
+
+    public function testHasQueryKey()
+    {
+        $uri = new Uri('http://example.com/path/to?q=foo%20bar#section-42');
+        $this->assertTrue($uri->hasQueryKey('q'));
+        $this->assertFalse($uri->hasQueryKey('q2'));
+    }
 }

@@ -10,4 +10,5 @@ interface CustomUriInterface
     public function getPassword();
     public function getQueryPart($key);
     public function withQueryKeyValue($key, $value, $isEncoded = true);
+    public function hasQueryKey($key): bool;
 }

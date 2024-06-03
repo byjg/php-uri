@@ -144,6 +144,11 @@ class Uri implements UriInterface, CustomUriInterface
         return $this->getFromArray($this->query, $key, null);
     }
 
+    public function hasQueryKey($key): bool
+    {
+        return isset($this->query[$key]);
+    }
+
     private function getFromArray($array, $key, $default)
     {
         if (isset($array[$key])) {
