@@ -136,7 +136,7 @@ class Uri implements UriInterface, CustomUriInterface
     /**
      * Not from UriInterface
      *
-     * @param $key
+     * @param string $key
      * @return ?string
      */
     public function getQueryPart(string $key): ?string
@@ -149,12 +149,12 @@ class Uri implements UriInterface, CustomUriInterface
         return isset($this->query[$key]);
     }
 
-    private function getFromArray($array, $key, $default): ?string
+    private function getFromArray(array $array, string $key, mixed $default): ?string
     {
         return $array[$key] ?? $default;
     }
 
-    private function getIntFromArray($array, $key): ?int
+    private function getIntFromArray(array $array, string $key): ?int
     {
         return empty($array[$key]) ? null : intval($array[$key]);
     }
@@ -176,7 +176,7 @@ class Uri implements UriInterface, CustomUriInterface
         return
             $this->concatSuffix($this->getUserInfo(), "@")
             . $this->getHost()
-            . $this->concatPrefix(':', $this->getPort());
+            . $this->concatPrefix(':', strval($this->getPort()));
     }
 
     public function __toString(): string
@@ -189,7 +189,7 @@ class Uri implements UriInterface, CustomUriInterface
             . $this->concatPrefix('#', $this->getFragment());
     }
 
-    private function concatSuffix($str, $suffix)
+    private function concatSuffix(string $str, string $suffix): string
     {
         if (!empty($str)) {
             $str = $str . $suffix;
@@ -197,7 +197,7 @@ class Uri implements UriInterface, CustomUriInterface
         return $str;
     }
 
-    private function concatPrefix($prefix, $str)
+    private function concatPrefix(string $prefix, ?string $str): ?string
     {
         if (!empty($str)) {
             $str = $prefix . $str;

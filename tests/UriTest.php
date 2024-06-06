@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 class UriTest extends TestCase
 {
 
-    public function uriProvider()
+    public function uriProvider(): array
     {
         return [
             [ // #0
@@ -541,7 +541,7 @@ class UriTest extends TestCase
      * @param $uriStr
      * @param null $assertFields
      */
-    public function testParsePath($uriStr, $assertFields = '')
+    public function testParsePath($uriStr, $assertFields = null)
     {
         $uri = new Uri($uriStr);
         $this->assertSame($assertFields["Path"], $uri->getPath());
@@ -601,7 +601,7 @@ class UriTest extends TestCase
             Uri::getInstanceFromString()
                 ->withScheme('http')
                 ->withHost('host.com')
-                ->withPort('1234')
+                ->withPort(1234)
         );
     }
 
@@ -647,11 +647,11 @@ class UriTest extends TestCase
         $uri = Uri::getInstanceFromString('http://example.com/path/to?q=foo%20bar#section-42')
             ->withUserInfo('user', "O=+9%20zLZ}%{z+:tC");
 
-        $uri2 = \ByJG\Util\Uri::getInstanceFromString('http://user:O=+9%2520zLZ}%{z+:tC@example.com/path/to?q=foo%20bar#section-42');
+        $uri2 = Uri::getInstanceFromString('http://user:O=+9%2520zLZ}%{z+:tC@example.com/path/to?q=foo%20bar#section-42');
 
-        $uri3 = \ByJG\Util\Uri::getInstanceFromUri($uri);
+        $uri3 = Uri::getInstanceFromUri($uri);
 
-        $uri4 = \ByJG\Util\Uri::getInstanceFromString((string)$uri);
+        $uri4 = Uri::getInstanceFromString((string)$uri);
 
         $this->assertSame((string)$uri, (string)$uri2);
         $this->assertSame((string)$uri2, (string)$uri3);
