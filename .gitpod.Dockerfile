@@ -35,9 +35,3 @@ RUN sudo install-packages \
     php8.2-xdebug \
     php8.2-xml \
     pkg-php-tools
-
-COPY .config /home/gitpod/.config
-
-RUN curl -sS https://starship.rs/install.sh > /tmp/install.sh && \
-    sh /tmp/install.sh --yes && \
-    echo 'eval "$(starship init bash)"' >> ${HOME}/.bashrc
