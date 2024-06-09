@@ -8,13 +8,13 @@ use PHPUnit\Framework\TestCase;
 class UriTest extends TestCase
 {
 
-    public function uriProvider()
+    public function uriProvider(): array
     {
         return [
             [ // #0
-                'http://username:password@hostname/path?arg=value#anchor',
+                'https://username:password@hostname/path?arg=value#anchor',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => 'username',
                     'Password' => 'password',
                     'Userinfo' => 'username:password',
@@ -27,9 +27,9 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #1
-                'http://username:password@hostname/path/path2?arg=value&arg2=value2#anchor',
+                'https://username:password@hostname/path/path2?arg=value&arg2=value2#anchor',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => 'username',
                     'Password' => 'password',
                     'Userinfo' => 'username:password',
@@ -42,9 +42,9 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #2
-                'http://hostname/path/path2?arg=value&arg2=value2#anchor',
+                'https://hostname/path/path2?arg=value&arg2=value2#anchor',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => null,
                     'Password' => null,
                     'Userinfo' => null,
@@ -57,9 +57,9 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #3
-                'http://username@hostname/path/path2?arg=value&arg2=value2#anchor',
+                'https://username@hostname/path/path2?arg=value&arg2=value2#anchor',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => 'username',
                     'Password' => null,
                     'Userinfo' => 'username',
@@ -72,9 +72,9 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #4
-                'http://email@host.com.br:password@hostname/path/path2?arg=value&arg2=value2#anchor',
+                'https://email@host.com.br:password@hostname/path/path2?arg=value&arg2=value2#anchor',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => 'email@host.com.br',
                     'Password' => 'password',
                     'Userinfo' => 'email@host.com.br:password',
@@ -132,9 +132,9 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #8
-                'http://hostname.com/#anchor',
+                'https://hostname.com/#anchor',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => null,
                     'Password' => null,
                     'Userinfo' => null,
@@ -147,7 +147,7 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #9
-                'mysql://root:password@host-10.com:3306/database?extraparam=10',
+                'mysql://root:password@host-10.com:3306/database?extra_param=10',
                 [
                     'Scheme' => 'mysql',
                     'Username' => 'root',
@@ -156,13 +156,13 @@ class UriTest extends TestCase
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
-                    'Query' => 'extraparam=10',
+                    'Query' => 'extra_param=10',
                     'Fragment' => '',
                     'Authority' => 'root:password@host-10.com:3306'
                 ]
             ],
             [ // #10
-                'mysql://ro@11!%&*(ot:pass@(*&!$$word@host-10.com:3306/database?extraparam=10',
+                'mysql://ro@11!%&*(ot:pass@(*&!$$word@host-10.com:3306/database?extra_param=10',
                 [
                     'Scheme' => 'mysql',
                     'Username' => 'ro@11!%&*(ot',
@@ -171,14 +171,14 @@ class UriTest extends TestCase
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
-                    'Query' => 'extraparam=10',
+                    'Query' => 'extra_param=10',
                     'Fragment' => '',
                     'Authority' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306',
-                    'ToString' => 'mysql://ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extraparam=10'
+                    'ToString' => 'mysql://ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extra_param=10'
                 ]
             ],
             [ // #11
-                'mysql://root@host-10.com:3306/database?extraparam=10',
+                'mysql://root@host-10.com:3306/database?extra_param=10',
                 [
                     'Scheme' => 'mysql',
                     'Username' => 'root',
@@ -187,13 +187,13 @@ class UriTest extends TestCase
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
-                    'Query' => 'extraparam=10',
+                    'Query' => 'extra_param=10',
                     'Fragment' => '',
                     'Authority' => 'root@host-10.com:3306'
                 ]
             ],
             [ // #12
-                'mysql://root@host-10.com:3306/database?extraparam=10',
+                'mysql://root@host-10.com:3306/database?extra_param=10',
                 [
                     'Scheme' => 'mysql',
                     'Username' => 'root',
@@ -202,13 +202,13 @@ class UriTest extends TestCase
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
-                    'Query' => 'extraparam=10',
+                    'Query' => 'extra_param=10',
                     'Fragment' => '',
                     'Authority' => 'root@host-10.com:3306'
                 ]
             ],
             [ // #13
-                'mysql://host-10.com:3306/database?extraparam=10',
+                'mysql://host-10.com:3306/database?extra_param=10',
                 [
                     'Scheme' => 'mysql',
                     'Username' => null,
@@ -217,7 +217,7 @@ class UriTest extends TestCase
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
-                    'Query' => 'extraparam=10',
+                    'Query' => 'extra_param=10',
                     'Fragment' => '',
                     'Authority' => 'host-10.com:3306'
                 ]
@@ -253,7 +253,7 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #16
-                'mysql://host-10.com:3306?extraparam=10',
+                'mysql://host-10.com:3306?extra_param=10',
                 [
                     'Scheme' => 'mysql',
                     'Username' => null,
@@ -262,13 +262,13 @@ class UriTest extends TestCase
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '',
-                    'Query' => 'extraparam=10',
+                    'Query' => 'extra_param=10',
                     'Fragment' => '',
                     'Authority' => 'host-10.com:3306'
                 ]
             ],
             [ // #17
-                'mysql://host-10.com:3306?extraparam=10&other=20',
+                'mysql://host-10.com:3306?extra_param=10&other=20',
                 [
                     'Scheme' => 'mysql',
                     'Username' => null,
@@ -277,7 +277,7 @@ class UriTest extends TestCase
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '',
-                    'Query' => 'extraparam=10&other=20',
+                    'Query' => 'extra_param=10&other=20',
                     'Fragment' => '',
                     'Authority' => 'host-10.com:3306'
                 ]
@@ -420,9 +420,9 @@ class UriTest extends TestCase
                 ]
             ],
             [ // #27
-                'http://user:O=+9zLZ}%{z+:tC@host/path',
+                'https://user:O=+9zLZ}%{z+:tC@host/path',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => "user",
                     'Password' => "O=+9zLZ}%{z+:tC",
                     'Userinfo' => "user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC",
@@ -432,13 +432,13 @@ class UriTest extends TestCase
                     'Query' => null,
                     'Fragment' => '',
                     'Authority' => "user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host",
-                    'ToString' => 'http://user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host/path',
+                    'ToString' => 'https://user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC@host/path',
                 ]
             ],
             [ // #28
-                'http://host/path?key=value 1&key2=á%1$@a#fra%!',
+                'https://host/path?key=value 1&key2=á%1$@a#fra%!',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => "",
                     'Password' => "",
                     'Userinfo' => "",
@@ -448,13 +448,13 @@ class UriTest extends TestCase
                     'Query' => 'key=value%201&key2=%C3%A1%251%24%40a',
                     'Fragment' => 'fra%!',
                     'Authority' => "host",
-                    'ToString' => 'http://host/path?key=value%201&key2=%C3%A1%251%24%40a#fra%!',
+                    'ToString' => 'https://host/path?key=value%201&key2=%C3%A1%251%24%40a#fra%!',
                 ]
             ],
             [ // #29
-                'http://example.com/path/to?q=foo bar&q2=foo%20bar&q3=abc%3D%41#section-42',
+                'https://example.com/path/to?q=foo bar&q2=foo%20bar&q3=abc%3D%41#section-42',
                 [
-                    'Scheme' => 'http',
+                    'Scheme' => 'https',
                     'Username' => "",
                     'Password' => "",
                     'Userinfo' => "",
@@ -464,7 +464,7 @@ class UriTest extends TestCase
                     'Query' => 'q=foo%20bar&q2=foo%20bar&q3=abc%3DA',
                     'Fragment' => 'section-42',
                     'Authority' => "example.com",
-                    'ToString' => 'http://example.com/path/to?q=foo%20bar&q2=foo%20bar&q3=abc%3DA#section-42',
+                    'ToString' => 'https://example.com/path/to?q=foo%20bar&q2=foo%20bar&q3=abc%3DA#section-42',
                 ]
             ],
         ];
@@ -538,10 +538,10 @@ class UriTest extends TestCase
 
     /**
      * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
+     * @param string $uriStr
+     * @param array|null $assertFields
      */
-    public function testParsePath($uriStr, $assertFields = '')
+    public function testParsePath(string $uriStr, ?array $assertFields = [])
     {
         $uri = new Uri($uriStr);
         $this->assertSame($assertFields["Path"], $uri->getPath());
@@ -597,9 +597,9 @@ class UriTest extends TestCase
     public function testMountUrl1()
     {
         $this->assertEquals(
-            'http://host.com:1234',
+            'https://host.com:1234',
             Uri::getInstanceFromString()
-                ->withScheme('http')
+                ->withScheme('https')
                 ->withHost('host.com')
                 ->withPort('1234')
         );
@@ -610,9 +610,9 @@ class UriTest extends TestCase
         $uri = new Uri('/some/relative/path');
 
         $this->assertEquals(
-            'http://host.com/some/relative/path',
+            'https://host.com/some/relative/path',
             $uri
-                ->withScheme('http')
+                ->withScheme('https')
                 ->withHost('host.com')
                 ->__toString()
         );
@@ -620,10 +620,10 @@ class UriTest extends TestCase
 
     public function testChangeParameters()
     {
-        $uri = new Uri('http://foo-host.com/path?key=value&otherkey=othervalue#fragment');
+        $uri = new Uri('https://foo-host.com/path?key=value&otherkey=othervalue#fragment');
 
         $this->assertEquals(
-            'http://bar.net/otherpath?key=newvalue&otherkey=othervalue&newkey=value#fragment',
+            'https://bar.net/otherpath?key=newvalue&otherkey=othervalue&newkey=value#fragment',
             $uri
                 ->withHost('bar.net')
                 ->withPath('/otherpath')
@@ -634,7 +634,7 @@ class UriTest extends TestCase
 
     public function testFactory()
     {
-        $uriString = 'http://user:pass@host/path?query=1#fragment';
+        $uriString = 'https://user:pass@host/path?query=1#fragment';
         $uri = Uri::getInstanceFromString($uriString);
         $this->assertEquals($uriString, $uri->__toString());
 
@@ -644,14 +644,14 @@ class UriTest extends TestCase
 
     public function testFactory2()
     {
-        $uri = Uri::getInstanceFromString('http://example.com/path/to?q=foo%20bar#section-42')
+        $uri = Uri::getInstanceFromString('https://example.com/path/to?q=foo%20bar#section-42')
             ->withUserInfo('user', "O=+9%20zLZ}%{z+:tC");
 
-        $uri2 = \ByJG\Util\Uri::getInstanceFromString('http://user:O=+9%2520zLZ}%{z+:tC@example.com/path/to?q=foo%20bar#section-42');
+        $uri2 = Uri::getInstanceFromString('https://user:O=+9%2520zLZ}%{z+:tC@example.com/path/to?q=foo%20bar#section-42');
 
-        $uri3 = \ByJG\Util\Uri::getInstanceFromUri($uri);
+        $uri3 = Uri::getInstanceFromUri($uri);
 
-        $uri4 = \ByJG\Util\Uri::getInstanceFromString((string)$uri);
+        $uri4 = Uri::getInstanceFromString((string)$uri);
 
         $this->assertSame((string)$uri, (string)$uri2);
         $this->assertSame((string)$uri2, (string)$uri3);
@@ -660,20 +660,20 @@ class UriTest extends TestCase
 
     public function testRFC3986()
     {
-        $uri = Uri::getInstanceFromString("http://user:pa&@host");
-        $this->assertEquals("http://user:pa%26@host", (string)$uri);
+        $uri = Uri::getInstanceFromString("https://user:pa&@host");
+        $this->assertEquals("https://user:pa%26@host", (string)$uri);
 
-        $uri = Uri::getInstanceFromString("http://user:pa%26@host");
-        $this->assertEquals("http://user:pa%26@host", (string)$uri);
+        $uri = Uri::getInstanceFromString("https://user:pa%26@host");
+        $this->assertEquals("https://user:pa%26@host", (string)$uri);
 
-        $uri = Uri::getInstanceFromString("http://host")
+        $uri = Uri::getInstanceFromString("https://host")
             ->withUserInfo("user", "pa%26");
-        $this->assertEquals("http://user:pa%2526@host", (string)$uri);
+        $this->assertEquals("https://user:pa%2526@host", (string)$uri);
     }
 
     public function testWithUrlEncoding()
     {
-        $uri = Uri::getInstanceFromString('http://example.com/path/to?q=foo%20bar#section-42')
+        $uri = Uri::getInstanceFromString('https://example.com/path/to?q=foo%20bar#section-42')
             ->withUserInfo('user', "O=+9zLZ}%{z+:tC");
 
         $this->assertEquals("q=foo%20bar", $uri->getQuery());
@@ -684,7 +684,7 @@ class UriTest extends TestCase
 
     public function testWithQueryValue()
     {
-        $uri = Uri::getInstanceFromString("http://example.com")
+        $uri = Uri::getInstanceFromString("https://example.com")
             ->withQueryKeyValue("q", "abc")
             ->withQueryKeyValue("q1", "abc%3D%41")
             ->withQueryKeyValue("q2", "abc%3D%41", true);
@@ -734,7 +734,7 @@ class UriTest extends TestCase
 
     public function testGetFromArray()
     {
-        $uri = new Uri("http://server/path?query=abc&arg#fragment");
+        $uri = new Uri("https://server/path?query=abc&arg#fragment");
 
         $this->assertEquals("abc", $uri->getQueryPart("query"));
         $this->assertSame("", $uri->getQueryPart("arg"));
@@ -743,7 +743,7 @@ class UriTest extends TestCase
 
     public function testHasQueryKey()
     {
-        $uri = new Uri('http://example.com/path/to?q=foo%20bar#section-42');
+        $uri = new Uri('https://example.com/path/to?q=foo%20bar#section-42');
         $this->assertTrue($uri->hasQueryKey('q'));
         $this->assertFalse($uri->hasQueryKey('q2'));
     }

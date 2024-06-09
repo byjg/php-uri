@@ -2,7 +2,7 @@
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/byjg/uri/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/byjg/uri/?branch=master)
 [![Build Status](https://github.com/byjg/uri/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/uri/actions/workflows/phpunit.yml)
-[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
+[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](https://opensource.byjg.com)
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/uri/)
 [![GitHub license](https://img.shields.io/github/license/byjg/uri.svg)](https://opensource.byjg.com/opensource/licensing.html)
 [![GitHub release](https://img.shields.io/github/release/byjg/uri.svg)](https://github.com/byjg/uri/releases/)
@@ -15,15 +15,15 @@ The only way to store the plain password is using ->withUserInfo()
 For example:
 
 ```php
-$uri = \ByJG\Util\Uri::getInstanceFromString("http://user:pa&@host");
-print((string)$uri); // Will print "http://user:pa%26@host"
+$uri = \ByJG\Util\Uri::getInstanceFromString("https://user:pa&@host");
+print((string)$uri); // Will print "https://user:pa%26@host"
 
-$uri = \ByJG\Util\Uri::getInstanceFromString("http://user:pa%26@host");
-print((string)$uri); // Will print "http://user:pa%26@host"
+$uri = \ByJG\Util\Uri::getInstanceFromString("https://user:pa%26@host");
+print((string)$uri); // Will print "https://user:pa%26@host"
 
-$uri = \ByJG\Util\Uri::getInstanceFromString("http://host")
+$uri = \ByJG\Util\Uri::getInstanceFromString("https://host")
     ->withUserInfo("user", "pa%26");
-print((string)$uri); // Will print "http://user:pa%2526@host"
+print((string)$uri); // Will print "https://user:pa%2526@host"
 ```
 
 ## Custom methods
@@ -35,6 +35,8 @@ the interface \ByJG\Util\CustomUriInterface:
 - getPassword()
 - getQueryPart($key)
 - withQueryKeyValue($key, $value, $encode = true)
+- hasQueryKey(string $key): bool;
+
 
 More information about UriInterface:
 [https://github.com/php-fig/http-message/blob/master/src/UriInterface.php](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php)
@@ -59,4 +61,4 @@ flowchart TD
 ```
 
 ----
-[Open source ByJG](http://opensource.byjg.com)
+[Open source ByJG](https://opensource.byjg.com)
