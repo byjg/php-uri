@@ -149,7 +149,13 @@ class Uri implements UriInterface, CustomUriInterface
         return isset($this->query[$key]);
     }
 
-    private function getFromArray(array $array, string $key, mixed $default): ?string
+    /**
+     * @param array $array
+     * @param string $key
+     * @param null|string $default
+     * @return string|null
+     */
+    private function getFromArray(array $array, string $key, string|null $default): ?string
     {
         return $array[$key] ?? $default;
     }
@@ -218,8 +224,8 @@ class Uri implements UriInterface, CustomUriInterface
             . "(?:(?P<scheme>\w+):\/\/)?"
             . "(?:(?P<user>\S+?):(?P<pass>\S+)@)?"
             . "(?:(?P<user2>\S+)@)?"
-            . "(?:(?P<host>(?![A-Za-z]:)[\w\d\-]+(?:\.[\w\d\-]+)*))?"
-            . "(?::(?P<port>[\d]+))?"
+            . "(?P<host>(?![A-Za-z]:)[\w\-]+(?:\.[\w\-]+)*)?"
+            . "(?::(?P<port>\d+))?"
             . "(?P<path>([A-Za-z]:)?[^?#]+)?"
             . "(?:\?(?P<query>[^#]+))?"
             . "(?:#(?P<fragment>.*))?"
@@ -242,7 +248,11 @@ class Uri implements UriInterface, CustomUriInterface
         $this->fragment = $this->getFromArray($parsed, 'fragment', "");
     }
 
-    public static function getInstanceFromString($uriString = null): UriInterface
+    /**
+     * @param null|string $uriString
+     * @return UriInterface
+     */
+    public static function getInstanceFromString(string|null $uriString = null): UriInterface
     {
         return new Uri($uriString);
     }
