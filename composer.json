@@ -1,6 +1,6 @@
 {
   "name": "byjg/uri",
-  "description": "An implementation of PSR UriInterface ",
+  "description": "An implementation of PSR-7 Uri Interface ",
   "autoload": {
     "psr-4": {
       "ByJG\\Util\\": "src/"
