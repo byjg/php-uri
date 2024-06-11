@@ -41,7 +41,7 @@ class Uri implements UriInterface, CustomUriInterface
 
     public function getUserInfo(): string
     {
-        return $this->username
+        return ($this->username ?? "")
             . (!empty($this->password) ? ':' . rawurlencode($this->password) : '' );
     }
 
@@ -108,7 +108,7 @@ class Uri implements UriInterface, CustomUriInterface
         return $clone;
     }
 
-    protected function setQuery($query): self
+    protected function setQuery(string $query): self
     {
         parse_str($query, $this->query);
         return $this;
@@ -197,12 +197,12 @@ class Uri implements UriInterface, CustomUriInterface
         return $str;
     }
 
-    private function concatPrefix(string $prefix, ?string $str): ?string
+    private function concatPrefix(string $prefix, ?string $str): string
     {
         if (!empty($str)) {
             $str = $prefix . $str;
         }
-        return $str;
+        return $str ?? "";
     }
 
     /**
@@ -242,12 +242,12 @@ class Uri implements UriInterface, CustomUriInterface
         $this->fragment = $this->getFromArray($parsed, 'fragment', "");
     }
 
-    public static function getInstanceFromString($uriString = null): Uri
+    public static function getInstanceFromString($uriString = null): UriInterface
     {
         return new Uri($uriString);
     }
 
-    public static function getInstanceFromUri(UriInterface $uri): Uri
+    public static function getInstanceFromUri(UriInterface $uri): UriInterface
     {
         return self::getInstanceFromString((string)$uri);
     }
