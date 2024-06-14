@@ -3,8 +3,7 @@ tasks:
     command: |
       composer install
 
-image:
-  file: byjg/gitpod-image:latest
+image: byjg/gitpod-image:latest
 
 jetbrains:
   phpstorm:
