@@ -7,7 +7,7 @@ use Psr\Http\Message\UriInterface;
 /**
  * Class Uri
  */
-class Uri implements UriInterface, CustomUriInterface
+class Uri implements CustomUriInterface
 {
     private string $host = '';
     private string $fragment = '';

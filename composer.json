@@ -1,5 +1,6 @@
 {
   "name": "byjg/uri",
+  "type": "project",
   "description": "An implementation of PSR UriInterface ",
   "autoload": {
     "psr-4": {
