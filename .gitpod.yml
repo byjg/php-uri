@@ -4,7 +4,7 @@ tasks:
       composer install
 
 image:
-  file: .gitpod.Dockerfile
+  file: byjg/gitpod-image:latest
 
 jetbrains:
   phpstorm:
