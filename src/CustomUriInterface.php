@@ -4,7 +4,9 @@
 namespace ByJG\Util;
 
 
-interface CustomUriInterface
+use Psr\Http\Message\UriInterface;
+
+interface CustomUriInterface extends UriInterface
 {
     public function getUsername(): ?string;
     public function getPassword(): ?string;
