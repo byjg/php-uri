@@ -28,8 +28,8 @@ class Uri implements CustomUriInterface
         return $this->scheme;
     }
 
-    private ?string $username = "";
-    private ?string $password = "";
+    private ?string $username = null;
+    private ?string $password = null;
 
     public function withUserInfo(string $user, string $password = null): UriInterface
     {
@@ -41,12 +41,12 @@ class Uri implements CustomUriInterface
 
     public function getUserInfo(): string
     {
-        return $this->username
+        return ($this->username ?? "")
             . (!empty($this->password) ? ':' . rawurlencode($this->password) : '' );
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getUsername(): ?string
     {
@@ -54,7 +54,7 @@ class Uri implements CustomUriInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getPassword(): ?string
     {
@@ -74,7 +74,7 @@ class Uri implements CustomUriInterface
     }
 
     /**
-     * @param int|string|null $port
+     * @param int|null $port
      * @return $this
      */
     public function withPort(?int $port): UriInterface
@@ -108,7 +108,7 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
-    protected function setQuery($query)
+    protected function setQuery(string $query): self
     {
         parse_str($query, $this->query);
         return $this;
@@ -122,11 +122,11 @@ class Uri implements CustomUriInterface
 
     /**
      * @param string $key
-     * @param string|array $value
+     * @param string $value
      * @param bool $isEncoded
      * @return $this
      */
-    public function withQueryKeyValue($key, $value, $isEncoded = false): Uri
+    public function withQueryKeyValue(string $key, string $value, bool $isEncoded = false): self
     {
         $clone = clone $this;
         $clone->query[$key] = ($isEncoded ? rawurldecode($value) : $value);
@@ -136,26 +136,33 @@ class Uri implements CustomUriInterface
     /**
      * Not from UriInterface
      *
-     * @param $key
-     * @return string
+     * @param string $key
+     * @return ?string
      */
-    public function getQueryPart($key): ?string
+    public function getQueryPart(string $key): ?string
     {
         return $this->getFromArray($this->query, $key, null);
     }
 
-    public function hasQueryKey($key): bool
+    public function hasQueryKey(string $key): bool
     {
         return isset($this->query[$key]);
     }
 
-    private function getFromArray($array, $key, $default)
+    /**
+     * @param array $array
+     * @param string $key
+     * @param null|string $default
+     * @return string|null
+     */
+    private function getFromArray(array $array, string $key, string|null $default): ?string
     {
-        if (isset($array[$key])) {
-            return empty($array[$key]) ? $default : $array[$key];
-        }
+        return $array[$key] ?? $default;
+    }
 
-        return $default;
+    private function getIntFromArray(array $array, string $key): ?int
+    {
+        return empty($array[$key]) ? null : intval($array[$key]);
     }
 
     public function getFragment(): string
@@ -175,7 +182,7 @@ class Uri implements CustomUriInterface
         return
             $this->concatSuffix($this->getUserInfo(), "@")
             . $this->getHost()
-            . $this->concatPrefix(':', $this->getPort());
+            . $this->concatPrefix(':', strval($this->getPort()));
     }
 
     public function __toString(): string
@@ -188,7 +195,7 @@ class Uri implements CustomUriInterface
             . $this->concatPrefix('#', $this->getFragment());
     }
 
-    private function concatSuffix($str, $suffix)
+    private function concatSuffix(string $str, string $suffix): string
     {
         if (!empty($str)) {
             $str = $str . $suffix;
@@ -196,18 +203,18 @@ class Uri implements CustomUriInterface
         return $str;
     }
 
-    private function concatPrefix($prefix, $str)
+    private function concatPrefix(string $prefix, ?string $str): string
     {
         if (!empty($str)) {
             $str = $prefix . $str;
         }
-        return $str;
+        return $str ?? "";
     }
 
     /**
      * @param string|null $uri
      */
-    public function __construct(string $uri = null)
+    public function __construct(?string $uri = null)
     {
         if (empty($uri)) {
             return;
@@ -217,8 +224,8 @@ class Uri implements CustomUriInterface
             . "(?:(?P<scheme>\w+):\/\/)?"
             . "(?:(?P<user>\S+?):(?P<pass>\S+)@)?"
             . "(?:(?P<user2>\S+)@)?"
-            . "(?:(?P<host>(?![A-Za-z]:)[\w\d\-]+(?:\.[\w\d\-]+)*))?"
-            . "(?::(?P<port>[\d]+))?"
+            . "(?P<host>(?![A-Za-z]:)[\w\-]+(?:\.[\w\-]+)*)?"
+            . "(?::(?P<port>\d+))?"
             . "(?P<path>([A-Za-z]:)?[^?#]+)?"
             . "(?:\?(?P<query>[^#]+))?"
             . "(?:#(?P<fragment>.*))?"
@@ -232,7 +239,7 @@ class Uri implements CustomUriInterface
 
         $this->scheme = $this->getFromArray($parsed, 'scheme', "");
         $this->host = $this->getFromArray($parsed, 'host', "");
-        $this->port = $this->getFromArray($parsed, 'port', null);
+        $this->port = $this->getIntFromArray($parsed, 'port');
         $this->username = $user;
         $this->password = rawurldecode($this->getFromArray($parsed, 'pass', ""));
         $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', ""));
@@ -241,12 +248,16 @@ class Uri implements CustomUriInterface
         $this->fragment = $this->getFromArray($parsed, 'fragment', "");
     }
 
-    public static function getInstanceFromString($uriString = null): Uri
+    /**
+     * @param null|string $uriString
+     * @return UriInterface
+     */
+    public static function getInstanceFromString(string|null $uriString = null): UriInterface
     {
         return new Uri($uriString);
     }
 
-    public static function getInstanceFromUri(UriInterface $uri): Uri
+    public static function getInstanceFromUri(UriInterface $uri): UriInterface
     {
         return self::getInstanceFromString((string)$uri);
     }

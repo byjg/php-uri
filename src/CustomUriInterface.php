@@ -8,9 +8,9 @@ use Psr\Http\Message\UriInterface;
 
 interface CustomUriInterface extends UriInterface
 {
-    public function getUsername();
-    public function getPassword();
-    public function getQueryPart($key);
-    public function withQueryKeyValue($key, $value, $isEncoded = true);
-    public function hasQueryKey($key): bool;
+    public function getUsername(): ?string;
+    public function getPassword(): ?string;
+    public function getQueryPart(string $key): ?string;
+    public function withQueryKeyValue(string $key, string $value, bool $isEncoded = true): self;
+    public function hasQueryKey(string $key): bool;
 }
