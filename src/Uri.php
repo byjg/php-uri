@@ -31,7 +31,7 @@ class Uri implements CustomUriInterface
     private ?string $username = null;
     private ?string $password = null;
 
-    public function withUserInfo(?string $user, ?string $password = null): UriInterface
+    public function withUserInfo(string $user, ?string $password = null): UriInterface
     {
         $clone = clone $this;
         $clone->username = $user;
