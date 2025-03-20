@@ -2,13 +2,15 @@
 
 namespace Test;
 
+use ByJG\Util\CustomUriInterface;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class UriTest extends TestCase
 {
 
-    public function uriProvider(): array
+    public static function uriProvider(): array
     {
         return [
             [ // #0
@@ -470,121 +472,77 @@ class UriTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseScheme($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseScheme(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Scheme"], $uri->getScheme());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseUsername($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseUsername(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Username"], $uri->getUsername());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParsePassword($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParsePassword(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Password"], $uri->getPassword());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseUserinfo($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseUserinfo(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Userinfo"], $uri->getUserinfo());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseHost($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseHost(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Host"], $uri->getHost());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParsePort($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParsePort(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Port"], $uri->getPort());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param string $uriStr
-     * @param array|null $assertFields
-     */
-    public function testParsePath(string $uriStr, ?array $assertFields = [])
+    #[DataProvider('uriProvider')]
+    public function testParsePath(string $uriStr, array $assertFields = [])
     {
         $uri = new Uri($uriStr);
         $this->assertSame($assertFields["Path"], $uri->getPath());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseQuery($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseQuery(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Query"], $uri->getQuery());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseFragment($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseFragment(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Fragment"], $uri->getFragment());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseAuthority($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseAuthority(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Authority"], $uri->getAuthority());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
+    #[DataProvider('uriProvider')]
     public function testParseToString($uriStr, $assertFields = null)
     {
         $uri = new Uri($uriStr);

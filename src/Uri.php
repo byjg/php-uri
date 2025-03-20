@@ -2,6 +2,7 @@
 
 namespace ByJG\Util;
 
+use Override;
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -16,6 +17,7 @@ class Uri implements CustomUriInterface
     private ?int $port = null;
     private array $query = [];
 
+    #[Override]
     public function withScheme(string $scheme): UriInterface
     {
         $clone = clone $this;
@@ -23,6 +25,7 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    #[Override]
     public function getScheme(): string
     {
         return $this->scheme;
@@ -31,6 +34,7 @@ class Uri implements CustomUriInterface
     private ?string $username = null;
     private ?string $password = null;
 
+    #[Override]
     public function withUserInfo(string $user, ?string $password = null): UriInterface
     {
         $clone = clone $this;
@@ -39,6 +43,7 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    #[Override]
     public function getUserInfo(): string
     {
         return ($this->username ?? "")
@@ -48,6 +53,7 @@ class Uri implements CustomUriInterface
     /**
      * @return string|null
      */
+    #[Override]
     public function getUsername(): ?string
     {
         return $this->username;
@@ -56,11 +62,13 @@ class Uri implements CustomUriInterface
     /**
      * @return string|null
      */
+    #[Override]
     public function getPassword(): ?string
     {
         return $this->password;
     }
 
+    #[Override]
     public function withHost(string $host): UriInterface
     {
         $clone = clone $this;
@@ -68,6 +76,7 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    #[Override]
     public function getHost(): string
     {
         return $this->host;
@@ -77,6 +86,7 @@ class Uri implements CustomUriInterface
      * @param int|null $port
      * @return $this
      */
+    #[Override]
     public function withPort(?int $port): UriInterface
     {
         $clone = clone $this;
@@ -84,11 +94,13 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    #[Override]
     public function getPort(): ?int
     {
         return $this->port;
     }
 
+    #[Override]
     public function withPath(string $path): UriInterface
     {
         $clone = clone $this;
@@ -96,11 +108,13 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    #[Override]
     public function getPath(): string
     {
         return $this->path;
     }
 
+    #[Override]
     public function withQuery(string $query): UriInterface
     {
         $clone = clone $this;
@@ -114,7 +128,7 @@ class Uri implements CustomUriInterface
         return $this;
     }
 
-
+    #[Override]
     public function getQuery(): string
     {
         return http_build_query($this->query, "", "&", PHP_QUERY_RFC3986);
@@ -126,6 +140,7 @@ class Uri implements CustomUriInterface
      * @param bool $isEncoded
      * @return $this
      */
+    #[Override]
     public function withQueryKeyValue(string $key, string $value, bool $isEncoded = false): self
     {
         $clone = clone $this;
@@ -139,11 +154,13 @@ class Uri implements CustomUriInterface
      * @param string $key
      * @return ?string
      */
+    #[Override]
     public function getQueryPart(string $key): ?string
     {
         return $this->getFromArray($this->query, $key, null);
     }
 
+    #[Override]
     public function hasQueryKey(string $key): bool
     {
         return isset($this->query[$key]);
@@ -165,11 +182,13 @@ class Uri implements CustomUriInterface
         return empty($array[$key]) ? null : intval($array[$key]);
     }
 
+    #[Override]
     public function getFragment(): string
     {
         return $this->fragment;
     }
 
+    #[Override]
     public function withFragment(string $fragment): UriInterface
     {
         $clone = clone $this;
@@ -177,6 +196,7 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    #[Override]
     public function getAuthority(): string
     {
         return
