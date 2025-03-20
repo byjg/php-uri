@@ -635,11 +635,13 @@ class UriTest extends TestCase
             ->withUserInfo('user', "O=+9zLZ}%{z+:tC");
 
         $this->assertEquals("q=foo%20bar", $uri->getQuery());
+        /** @var CustomUriInterface $uri */
         $this->assertEquals("user", $uri->getUsername());
         $this->assertEquals("O=+9zLZ}%{z+:tC", $uri->getPassword());
         $this->assertEquals('user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC', $uri->getUserInfo());
     }
 
+    /** @psalm-suppress UndefinedInterfaceMethod */
     public function testWithQueryValue()
     {
         $uri = Uri::getInstanceFromString("https://example.com")
