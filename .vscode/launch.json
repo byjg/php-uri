@@ -55,7 +55,6 @@
                 "-dxdebug.start_with_request=yes"
             ],
             "env": {
-                "APP_ENV": "test",
                 "XDEBUG_MODE": "debug,develop",
                 "XDEBUG_CONFIG": "client_port=${port}"
             }
