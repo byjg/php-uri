@@ -270,15 +270,30 @@ class Uri implements CustomUriInterface
 
     /**
      * @param null|string $uriString
+     * @deprecated use getInstance
      * @return UriInterface
      */
     public static function getInstanceFromString(string|null $uriString = null): UriInterface
     {
-        return new Uri($uriString);
+        return self::getInstance($uriString);
     }
 
+    /**
+     * @param UriInterface $uri
+     * @deprecated use getInstance
+     * @return UriInterface
+     */
     public static function getInstanceFromUri(UriInterface $uri): UriInterface
     {
-        return self::getInstanceFromString((string)$uri);
+        return self::getInstance($uri);
+    }
+
+    public static function getInstance(string|UriInterface|null $uri = null): UriInterface
+    {
+        if ($uri instanceof UriInterface) {
+            return new Uri((string)$uri);
+        }
+
+        return new Uri($uri);
     }
 }

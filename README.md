@@ -26,20 +26,20 @@ Examples:
 
 ```php
 // Creating a URI with special characters in the password
-$uri = \ByJG\Util\Uri::getInstanceFromString("https://user:pa&@host");
+$uri = \ByJG\Util\Uri::getInstance("https://user:pa&@host");
 print((string)$uri); // Will print "https://user:pa%26@host"
 
 // Creating a URI with already encoded characters
-$uri = \ByJG\Util\Uri::getInstanceFromString("https://user:pa%26@host");
+$uri = \ByJG\Util\Uri::getInstance("https://user:pa%26@host");
 print((string)$uri); // Will print "https://user:pa%26@host"
 
 // Using withUserInfo with unencoded password
-$uri = \ByJG\Util\Uri::getInstanceFromString("https://host")
+$uri = \ByJG\Util\Uri::getInstance("https://host")
     ->withUserInfo("user", "pa&");
 print((string)$uri); // Will print "https://user:pa&@host"
 
 // Using withUserInfo with already encoded password
-$uri = \ByJG\Util\Uri::getInstanceFromString("https://host")
+$uri = \ByJG\Util\Uri::getInstance("https://host")
     ->withUserInfo("user", "pa%26");
 print((string)$uri); // Will print "https://user:pa%2526@host"
 ```
@@ -62,10 +62,10 @@ The class provides convenient static factory methods:
 
 ```php
 // Create from string
-$uri = Uri::getInstanceFromString("https://example.com/path?query=value#fragment");
+$uri = Uri::getInstance("https://example.com/path?query=value#fragment");
 
 // Create from another UriInterface
-$uri2 = Uri::getInstanceFromUri($uri);
+$uri2 = Uri::getInstance($uri);
 ```
 
 ## Install
