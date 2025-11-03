@@ -61,7 +61,3 @@ echo $newUri->getPath();   // "/new-path"
 - ✅ RFC3986 URI specification support
 - ✅ Type-safe with PHP 8.1+ strict typing
 - ✅ Immutable value object pattern
-
----
-
-[Next: URI Encoding Behavior →](uri-encoding.md)

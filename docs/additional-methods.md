@@ -143,7 +143,3 @@ $uri = Uri::getInstance("https://example.com")
 echo (string)$uri;
 // "https://example.com?page=1&limit=10&sort=name"
 ```
-
----
-
-[← Previous: URI Encoding Behavior](uri-encoding.md) | [Next: PSR-7 Methods →](psr7-methods.md)

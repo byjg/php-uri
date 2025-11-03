@@ -99,7 +99,3 @@ $uri = new Uri("https://example.com/path");
 ```
 
 However, the static factory method `getInstance()` is recommended for consistency and flexibility.
-
----
-
-[← Previous: PSR-7 Methods](psr7-methods.md) | [Next: Examples →](examples.md)

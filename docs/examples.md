@@ -219,7 +219,3 @@ $uriString = (string)$uri;
 // Re-parse
 $newUri = Uri::getInstance($uriString);
 ```
-
----
-
-[← Previous: Factory Methods](factory-methods.md) | [Back to Index](../README.md)

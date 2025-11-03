@@ -59,7 +59,3 @@ echo $uri->getQuery();
 3. **Query strings**: Built using `http_build_query()` with `PHP_QUERY_RFC3986` flag
 
 This ensures that URIs can be parsed and re-serialized idempotently (parsing the output produces the same URI).
-
----
-
-[← Previous: Getting Started](getting-started.md) | [Next: Additional Methods →](additional-methods.md)

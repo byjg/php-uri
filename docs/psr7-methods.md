@@ -259,7 +259,3 @@ $uri = Uri::getInstance("https://user:pass@example.com:8080/path?query=value#fra
 echo (string)$uri;
 // "https://user:pass@example.com:8080/path?query=value#fragment"
 ```
-
----
-
-[← Previous: Additional Methods](additional-methods.md) | [Next: Factory Methods →](factory-methods.md)
