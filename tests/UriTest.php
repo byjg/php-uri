@@ -2,13 +2,15 @@
 
 namespace Test;
 
+use ByJG\Util\CustomUriInterface;
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class UriTest extends TestCase
 {
 
-    public function uriProvider(): array
+    public static function uriProvider(): array
     {
         return [
             [ // #0
@@ -470,121 +472,77 @@ class UriTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseScheme($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseScheme(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Scheme"], $uri->getScheme());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseUsername($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseUsername(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Username"], $uri->getUsername());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParsePassword($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParsePassword(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Password"], $uri->getPassword());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseUserinfo($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseUserinfo(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Userinfo"], $uri->getUserinfo());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseHost($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseHost(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Host"], $uri->getHost());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParsePort($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParsePort(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Port"], $uri->getPort());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param string $uriStr
-     * @param array|null $assertFields
-     */
-    public function testParsePath(string $uriStr, ?array $assertFields = [])
+    #[DataProvider('uriProvider')]
+    public function testParsePath(string $uriStr, array $assertFields = [])
     {
         $uri = new Uri($uriStr);
         $this->assertSame($assertFields["Path"], $uri->getPath());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseQuery($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseQuery(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Query"], $uri->getQuery());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseFragment($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseFragment(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Fragment"], $uri->getFragment());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
-    public function testParseAuthority($uriStr, $assertFields = null)
+    #[DataProvider('uriProvider')]
+    public function testParseAuthority(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
         $this->assertEquals($assertFields["Authority"], $uri->getAuthority());
     }
 
-    /**
-     * @dataProvider uriProvider
-     * @param $uriStr
-     * @param null $assertFields
-     */
+    #[DataProvider('uriProvider')]
     public function testParseToString($uriStr, $assertFields = null)
     {
         $uri = new Uri($uriStr);
@@ -598,7 +556,7 @@ class UriTest extends TestCase
     {
         $this->assertEquals(
             'https://host.com:1234',
-            Uri::getInstanceFromString()
+            Uri::getInstance()
                 ->withScheme('https')
                 ->withHost('host.com')
                 ->withPort(1234)
@@ -635,23 +593,23 @@ class UriTest extends TestCase
     public function testFactory()
     {
         $uriString = 'https://user:pass@host/path?query=1#fragment';
-        $uri = Uri::getInstanceFromString($uriString);
+        $uri = Uri::getInstance($uriString);
         $this->assertEquals($uriString, $uri->__toString());
 
-        $uri2 = Uri::getInstanceFromUri($uri);
+        $uri2 = Uri::getInstance($uri);
         $this->assertEquals($uriString, $uri2->__toString());
     }
 
     public function testFactory2()
     {
-        $uri = Uri::getInstanceFromString('https://example.com/path/to?q=foo%20bar#section-42')
+        $uri = Uri::getInstance('https://example.com/path/to?q=foo%20bar#section-42')
             ->withUserInfo('user', "O=+9%20zLZ}%{z+:tC");
 
-        $uri2 = Uri::getInstanceFromString('https://user:O=+9%2520zLZ}%{z+:tC@example.com/path/to?q=foo%20bar#section-42');
+        $uri2 = Uri::getInstance('https://user:O=+9%2520zLZ}%{z+:tC@example.com/path/to?q=foo%20bar#section-42');
 
-        $uri3 = Uri::getInstanceFromUri($uri);
+        $uri3 = Uri::getInstance($uri);
 
-        $uri4 = Uri::getInstanceFromString((string)$uri);
+        $uri4 = Uri::getInstance((string)$uri);
 
         $this->assertSame((string)$uri, (string)$uri2);
         $this->assertSame((string)$uri2, (string)$uri3);
@@ -660,31 +618,33 @@ class UriTest extends TestCase
 
     public function testRFC3986()
     {
-        $uri = Uri::getInstanceFromString("https://user:pa&@host");
+        $uri = Uri::getInstance("https://user:pa&@host");
         $this->assertEquals("https://user:pa%26@host", (string)$uri);
 
-        $uri = Uri::getInstanceFromString("https://user:pa%26@host");
+        $uri = Uri::getInstance("https://user:pa%26@host");
         $this->assertEquals("https://user:pa%26@host", (string)$uri);
 
-        $uri = Uri::getInstanceFromString("https://host")
+        $uri = Uri::getInstance("https://host")
             ->withUserInfo("user", "pa%26");
         $this->assertEquals("https://user:pa%2526@host", (string)$uri);
     }
 
     public function testWithUrlEncoding()
     {
-        $uri = Uri::getInstanceFromString('https://example.com/path/to?q=foo%20bar#section-42')
+        $uri = Uri::getInstance('https://example.com/path/to?q=foo%20bar#section-42')
             ->withUserInfo('user', "O=+9zLZ}%{z+:tC");
 
         $this->assertEquals("q=foo%20bar", $uri->getQuery());
+        /** @var CustomUriInterface $uri */
         $this->assertEquals("user", $uri->getUsername());
         $this->assertEquals("O=+9zLZ}%{z+:tC", $uri->getPassword());
         $this->assertEquals('user:O%3D%2B9zLZ%7D%25%7Bz%2B%3AtC', $uri->getUserInfo());
     }
 
+    /** @psalm-suppress UndefinedInterfaceMethod */
     public function testWithQueryValue()
     {
-        $uri = Uri::getInstanceFromString("https://example.com")
+        $uri = Uri::getInstance("https://example.com")
             ->withQueryKeyValue("q", "abc")
             ->withQueryKeyValue("q1", "abc%3D%41")
             ->withQueryKeyValue("q2", "abc%3D%41", true);
