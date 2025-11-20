@@ -16,7 +16,7 @@ composer require "byjg/uri"
 
 ## Requirements
 
-- PHP 8.1, 8.2, 8.3, 8.4, or 8.5
+- PHP 8.3, 8.4, or 8.5
 - psr/http-message (^1.0|^1.1|^2.0)
 
 ## Basic Usage
@@ -59,5 +59,5 @@ echo $newUri->getPath();   // "/new-path"
 - ✅ Fully compliant with [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php)
 - ✅ Additional utility methods via `CustomUriInterface`
 - ✅ RFC3986 URI specification support
-- ✅ Type-safe with PHP 8.1+ strict typing
+- ✅ Type-safe with PHP 8.3+ strict typing
 - ✅ Immutable value object pattern
