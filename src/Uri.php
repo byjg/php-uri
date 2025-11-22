@@ -257,15 +257,14 @@ class Uri implements CustomUriInterface
             $user = $this->getFromArray($parsed, 'user2', null);
         }
 
-        $this->scheme = $this->getFromArray($parsed, 'scheme', "");
-        $this->host = $this->getFromArray($parsed, 'host', "");
+        $this->scheme = $this->getFromArray($parsed, 'scheme', '') ?? '';
+        $this->host = $this->getFromArray($parsed, 'host', '') ?? '';
         $this->port = $this->getIntFromArray($parsed, 'port');
         $this->username = $user;
-        $this->password = rawurldecode($this->getFromArray($parsed, 'pass', ""));
-        $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', ""));
-        $this->path = empty($this->path) ? "" : $this->path;
-        $this->setQuery($this->getFromArray($parsed, 'query', ""));
-        $this->fragment = $this->getFromArray($parsed, 'fragment', "");
+        $this->password = rawurldecode($this->getFromArray($parsed, 'pass', '') ?? '');
+        $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', '') ?? '') ?? '';
+        $this->setQuery($this->getFromArray($parsed, 'query', '') ?? '');
+        $this->fragment = $this->getFromArray($parsed, 'fragment', '') ?? '';
     }
 
     /**
