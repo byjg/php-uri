@@ -1,10 +1,4 @@
----
-tags: [php, http]
----
-
 # PSR-7 URI Implementation
-
-A PHP implementation of PSR-7 UriInterface with additional utility methods.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%23ea4aaa?logo=githubsponsors&logoColor=white&labelColor=0d1117)](https://github.com/sponsors/byjg)
 [![Build Status](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml)
@@ -12,6 +6,8 @@ A PHP implementation of PSR-7 UriInterface with additional utility methods.
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-uri/)
 [![GitHub license](https://img.shields.io/github/license/byjg/php-uri.svg)](https://opensource.byjg.com/license/)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-uri.svg)](https://github.com/byjg/uri/releases/)
+
+A PHP implementation of PSR-7 UriInterface with additional utility methods.
 
 ## Features
 
@@ -73,12 +69,12 @@ $uri2 = Uri::getInstance($uri);
 
 ## Documentation
 
-- [Getting Started](getting-started)
-- [URI Encoding Behavior](uri-encoding)
-- [Additional Methods](additional-methods)
-- [PSR-7 Methods](psr7-methods)
-- [Factory Methods](factory-methods)
-- [Examples](examples)
+- [Getting Started](docs/getting-started.md)
+- [URI Encoding Behavior](docs/uri-encoding.md)
+- [Additional Methods](docs/additional-methods.md)
+- [PSR-7 Methods](docs/psr7-methods.md)
+- [Factory Methods](docs/factory-methods.md)
+- [Examples](docs/examples.md)
 
 ## Install
 
