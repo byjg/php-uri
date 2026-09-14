@@ -93,12 +93,5 @@ composer require "byjg/uri"
 vendor/bin/phpunit
 ```
 
-## Dependencies
-
-```mermaid
-flowchart TD
-    byjg/uri --> psr/http-message
-```
-
 ----
 [Open source ByJG](https://opensource.byjg.com)
