@@ -3,9 +3,69 @@
 > **Status: in development.** This document tracks changes landing on the `7.0` branch.
 > Nothing here is released yet, and the contents may still change.
 
+## Bug Fixes
+
+- **The query string is no longer corrupted on output** ([#23](https://github.com/byjg/php-uri/issues/23)).
+
+  The query used to be stored only as a `parse_str()` array and rebuilt with
+  `http_build_query()`, so no query string survived a round-trip:
+
+  | Input | Before | Now |
+  |---|---|---|
+  | `?group.id=g1` | `?group_id=g1` | `?group.id=g1` |
+  | `?tag=x&tag=y` | `?tag=y` | `?tag=x&tag=y` |
+  | `?a[]=1&a[]=2` | `?a%5B0%5D=1&a%5B1%5D=2` | `?a%5B%5D=1&a%5B%5D=2` |
+  | `?my%20key=v` | `?my_key=v` | `?my%20key=v` |
+  | `?flag` | `?flag=` | `?flag` |
+
+  `parse_str()` is a form-data decoder that produces PHP variable names, not a URI query
+  parser — it rewrites `.` and space to `_`, keeps only the last of a repeated key, and
+  turns `a[]` into an array (see [php/php-src#8639](https://github.com/php/php-src/issues/8639),
+  which is closed as stale and needs an RFC, so this will not change upstream).
+
+  The query is now kept as an ordered list of raw key/value pairs and only its *encoding*
+  is normalized on output, which keeps the library RFC3986-compliant and satisfies the PSR-7
+  requirement that `withQuery($query)->getQuery()` returns `$query`. As a side effect,
+  pre-signed URLs (S3, CloudFront) now survive a round-trip with their signature intact.
+
+- `getQueryPart()` now resolves keys exactly as they were written, so
+  `getQueryPart('group.id')` returns the value instead of `null`. Its signature is unchanged
+  (`?string`, the last value when a key repeats), so no existing caller needs to be touched.
+
+- `getQueryPart()` no longer throws a `TypeError` for a bracket key such as `?a[]=1`
+  (`parse_str()` produced an array where a `?string` was declared).
+
+## New Features
+
+- `CustomUriInterface::getQueryParts(string $key): array` returns **every** value of a key,
+  in order — the only way to read a repeated key, now that `?tag=x&tag=y` survives:
+
+  ```php
+  $uri = Uri::getInstance('https://example.com?tag=x&page=1&tag=y');
+
+  $uri->getQueryParts('tag');     // ["x", "y"]
+  $uri->getQueryParts('page');    // ["1"]
+  $uri->getQueryParts('missing'); // []
+  ```
+
+  `getQueryPart()` is left alone and still returns `?string`, so the ~28 call sites across
+  `php-anydataset-db`, `php-rabbitmq-client`, `php-migration` and `php-mailwrapper` — all of
+  which read single-valued DSN options — keep working untouched.
+
+## Deprecations
+
+- **The `parse_str()` mangled-name fallback in `getQueryPart()` and `hasQueryKey()` is
+  deprecated and will be removed in 8.0.** Now that keys resolve as written,
+  `getQueryPart('group_id')` for a `?group.id=1` query is only still supported so that code
+  written against the old broken behaviour keeps running. Ask for the real key instead.
+  `getQueryParts()` never consults this index.
+
+  No runtime deprecation is emitted; this is a documentation-only notice.
+
 ## Breaking Changes
 
-- None.
+- None for well-formed input; `getQuery()` and `__toString()` now return the query the way
+  it was given, so any code asserting on the mangled output above must be updated.
 
 ## Requirements
 
