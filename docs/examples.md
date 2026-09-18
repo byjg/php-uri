@@ -152,6 +152,24 @@ $uri = Uri::getInstance("file://C:\\Users\\John\\file.txt");
 echo $uri->getPath(); // "C:\\Users\\John\\file.txt"
 ```
 
+### Drive letters and one-character hosts
+
+A Windows drive letter and a one-character host with a port look alike: `C:` and `h:`. They
+are told apart by what follows the colon -- **digits mean a port, anything else means a
+drive letter**:
+
+```php
+Uri::getInstance("C:\\Windows\\file.db")->getPath(); // "C:\\Windows\\file.db" -- a path
+Uri::getInstance("C:foo")->getPath();             // "C:foo" -- a path
+Uri::getInstance("kafka://h:9092")->getHost();    // "h", port 9092 -- a host
+```
+
+:::warning
+`C:1` is genuinely ambiguous -- it is both a drive-relative path and a one-character host on
+port 1, and nothing in the string separates them. It is read as **host `C` on port 1**.
+Write `C:\\1` or `C:/1` if a path is meant.
+:::
+
 ## API URL Building
 
 ```php

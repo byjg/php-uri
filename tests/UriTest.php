@@ -469,6 +469,70 @@ class UriTest extends TestCase
                     'ToString' => 'https://example.com/path/to?q=foo%20bar&q2=foo%20bar&q3=abc%3DA#section-42',
                 ]
             ],
+            [ // #30
+                'kafka://h:9092',
+                [
+                    'Scheme' => 'kafka',
+                    'Username' => "",
+                    'Password' => "",
+                    'Userinfo' => "",
+                    'Host' => 'h',
+                    'Port' => 9092,
+                    'Path' => '',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'h:9092',
+                    'ToString' => 'kafka://h:9092',
+                ]
+            ],
+            [ // #31
+                'kafka://a:9092/path',
+                [
+                    'Scheme' => 'kafka',
+                    'Username' => "",
+                    'Password' => "",
+                    'Userinfo' => "",
+                    'Host' => 'a',
+                    'Port' => 9092,
+                    'Path' => '/path',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'a:9092',
+                    'ToString' => 'kafka://a:9092/path',
+                ]
+            ],
+            [ // #32
+                'mysql://user:pw@h:3306/db',
+                [
+                    'Scheme' => 'mysql',
+                    'Username' => 'user',
+                    'Password' => 'pw',
+                    'Userinfo' => 'user:pw',
+                    'Host' => 'h',
+                    'Port' => 3306,
+                    'Path' => '/db',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'user:pw@h:3306',
+                    'ToString' => 'mysql://user:pw@h:3306/db',
+                ]
+            ],
+            [ // #33
+                'h:9092',
+                [
+                    'Scheme' => "",
+                    'Username' => "",
+                    'Password' => "",
+                    'Userinfo' => "",
+                    'Host' => 'h',
+                    'Port' => 9092,
+                    'Path' => '',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'h:9092',
+                    'ToString' => 'h:9092',
+                ]
+            ],
         ];
     }
 
@@ -706,6 +770,83 @@ class UriTest extends TestCase
         $uri = new Uri('https://example.com/path/to?q=foo%20bar#section-42');
         $this->assertTrue($uri->hasQueryKey('q'));
         $this->assertFalse($uri->hasQueryKey('q2'));
+    }
+
+    /**
+     * The host group guards against reading a Windows drive letter as a host. The guard must
+     * not reject a one-character host that carries a port -- "h:9092" is not "C:\\path".
+     */
+    public static function singleCharacterHostProvider(): array
+    {
+        return [
+            ['kafka://h:9092', 'h', 9092, ''],
+            ['kafka://a:9092/path', 'a', 9092, '/path'],
+            ['https://x:8080', 'x', 8080, ''],
+            ['mysql://user:pw@h:3306/db', 'h', 3306, '/db'],
+            ['h:9092', 'h', 9092, ''],
+            // a digit host already worked: the guard only ever looked at [A-Za-z]
+            ['kafka://1:9092', '1', 9092, ''],
+            // and the cases that were never broken must stay that way
+            ['kafka://hh:9092', 'hh', 9092, ''],
+            ['kafka://h', 'h', null, ''],
+            ['kafka://localhost:9092', 'localhost', 9092, ''],
+        ];
+    }
+
+    #[DataProvider('singleCharacterHostProvider')]
+    public function testSingleCharacterHostWithPort(
+        string $uriStr,
+        string $host,
+        ?int $port,
+        string $path
+    ) {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame($host, $uri->getHost());
+        $this->assertSame($port, $uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+    }
+
+    public static function windowsPathProvider(): array
+    {
+        return [
+            ['sqlite://C:\\Windows\\Path\\file.db', 'C:\\Windows\\Path\\file.db'],
+            ['sqlite://C:/Windows/Path/file.db', 'C:/Windows/Path/file.db'],
+            ['C:\\Windows\\Path\\file.db', 'C:\\Windows\\Path\\file.db'],
+            ['C:/Windows/Path/file.db', 'C:/Windows/Path/file.db'],
+            // drive-relative forms: no path separator, so nothing marks them as a path
+            // other than the absence of a port after the colon
+            ['C:foo', 'C:foo'],
+            ['C:', 'C:'],
+        ];
+    }
+
+    /**
+     * A drive letter must never be read as a host, whatever follows it -- unless what follows
+     * is a port, which is the ambiguity documented in testDriveLetterWithDigitsIsReadAsAPort().
+     */
+    #[DataProvider('windowsPathProvider')]
+    public function testWindowsPathIsNotReadAsAHost(string $uriStr, string $path)
+    {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame('', $uri->getHost());
+        $this->assertNull($uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+    }
+
+    /**
+     * Deliberate trade-off: "C:1" is a one-character host with port 1 and a drive-relative
+     * path at the same time, and nothing in the string tells them apart. The host reading
+     * wins, because a DSN is what this library parses.
+     */
+    public function testDriveLetterWithDigitsIsReadAsAPort()
+    {
+        $uri = new Uri('C:1');
+
+        $this->assertSame('C', $uri->getHost());
+        $this->assertSame(1, $uri->getPort());
+        $this->assertSame('', $uri->getPath());
     }
 
     public static function queryProvider(): array

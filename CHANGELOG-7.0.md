@@ -35,6 +35,27 @@
 - `getQueryPart()` no longer throws a `TypeError` for a bracket key such as `?a[]=1`
   (`parse_str()` produced an array where a `?string` was declared).
 
+- **A one-character hostname with a port now parses** ([#25](https://github.com/byjg/php-uri/issues/25)).
+
+  `kafka://h:9092` returned an empty host and a null port, and swallowed the whole authority
+  into the path. Two or more characters always worked, so only the one-character case failed:
+
+  | Input | Before | Now |
+  |---|---|---|
+  | `kafka://h:9092` | host `''`, port `null`, path `h:9092` | host `h`, port `9092` |
+  | `kafka://a:9092/path` | host `''`, port `null`, path `a:9092/path` | host `a`, port `9092`, path `/path` |
+  | `mysql://user:pw@h:3306/db` | host `''`, port `null`, path `h:3306/db` | host `h`, port `3306`, path `/db` |
+
+  The host pattern guards against reading a Windows drive letter as a host, and the guard
+  `(?![A-Za-z]:)` rejected *any* letter before a colon -- a one-character host looked exactly
+  like `C:`. The guard is now `(?![A-Za-z]:(?!\d))`: a letter and a colon are only a drive
+  letter when what follows is **not** a port. Windows paths, including the drive-relative
+  `C:foo` and `C:`, are unaffected.
+
+  Deliberate trade-off: `C:1` is now read as host `C` on port 1 rather than as a
+  drive-relative path. The two readings are indistinguishable; write `C:\1` or `C:/1` for the
+  path. Documented in `docs/examples.md`.
+
 ## New Features
 
 - `CustomUriInterface::getQueryParts(string $key): array` returns **every** value of a key,
