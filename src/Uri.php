@@ -358,7 +358,7 @@ class Uri implements CustomUriInterface
             . "(?:(?P<scheme>\w+):\/\/)?"
             . "(?:(?P<user>\S+?):(?P<pass>\S+)@)?"
             . "(?:(?P<user2>\S+)@)?"
-            . "(?P<host>(?![A-Za-z]:(?!\d))[\w\-]+(?:\.[\w\-]+)*)?"
+            . "(?P<host>\[[0-9A-Fa-f:.]+(?:%25[\w\-.~]+)?\]|(?![A-Za-z]:(?!\d))[\w\-]+(?:\.[\w\-]+)*)?"
             . "(?::(?P<port>\d+))?"
             . "(?P<path>([A-Za-z]:)?[^?#]+)?"
             . "(?:\?(?P<query>[^#]+))?"

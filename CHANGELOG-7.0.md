@@ -35,6 +35,32 @@
 - `getQueryPart()` no longer throws a `TypeError` for a bracket key such as `?a[]=1`
   (`parse_str()` produced an array where a `?string` was declared).
 
+- **IPv6 literals in the authority now parse** ([#26](https://github.com/byjg/php-uri/issues/26)).
+
+  `kafka://[::1]:9092` returned an empty host, a null port and an empty authority, and
+  swallowed the whole authority into the path:
+
+  | Input | Before (host / port / path) | Now |
+  |---|---|---|
+  | `kafka://[::1]:9092` | `''` / `null` / `[::1]:9092` | `[::1]` / `9092` / `''` |
+  | `kafka://[fe80::1%25eth0]:9092` | `''` / `null` / `[fe80::1%25eth0]:9092` | `[fe80::1%25eth0]` / `9092` / `''` |
+  | `https://user:pw@[2001:db8::1]:443/p` | `''` / `null` / `[2001:db8::1]:443/p` | `[2001:db8::1]` / `443` / `/p` |
+
+  The host pattern described only a dot-separated registered name, which cannot contain `[`,
+  `]` or `:`, so RFC 3986 section 3.2.2's `IP-literal` had nothing to match. An `IP-literal`
+  branch is now tried ahead of the registered-name branch, including RFC 6874 zone
+  identifiers (`%25eth0`).
+
+  **This failure was silent**: the literal survived verbatim inside the path, so
+  `__toString()` and anything logging the URI looked correct while every component accessor
+  was wrong -- a caller reading `getHost()`/`getPort()` got `''` and `null` and could connect
+  to a default port with no error raised.
+
+  `getHost()` returns the literal with its brackets, so `getAuthority()` reassembles on its
+  own. The branch accepts the character set of an IPv6 address rather than validating its
+  structure, matching the registered-name branch, which does not validate a hostname either;
+  `IPvFuture` is not covered.
+
 - **A one-character hostname with a port now parses** ([#25](https://github.com/byjg/php-uri/issues/25)).
 
   `kafka://h:9092` returned an empty host and a null port, and swallowed the whole authority

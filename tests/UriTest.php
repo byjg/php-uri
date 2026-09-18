@@ -533,6 +533,54 @@ class UriTest extends TestCase
                     'ToString' => 'h:9092',
                 ]
             ],
+            [ // #34
+                'kafka://[::1]:9092',
+                [
+                    'Scheme' => 'kafka',
+                    'Username' => "",
+                    'Password' => "",
+                    'Userinfo' => "",
+                    'Host' => '[::1]',
+                    'Port' => 9092,
+                    'Path' => '',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => '[::1]:9092',
+                    'ToString' => 'kafka://[::1]:9092',
+                ]
+            ],
+            [ // #35
+                'https://user:pw@[2001:db8::1]:443/p?q=1#f',
+                [
+                    'Scheme' => 'https',
+                    'Username' => 'user',
+                    'Password' => 'pw',
+                    'Userinfo' => 'user:pw',
+                    'Host' => '[2001:db8::1]',
+                    'Port' => 443,
+                    'Path' => '/p',
+                    'Query' => 'q=1',
+                    'Fragment' => 'f',
+                    'Authority' => 'user:pw@[2001:db8::1]:443',
+                    'ToString' => 'https://user:pw@[2001:db8::1]:443/p?q=1#f',
+                ]
+            ],
+            [ // #36
+                'http://[::ffff:192.0.2.1]/p',
+                [
+                    'Scheme' => 'http',
+                    'Username' => "",
+                    'Password' => "",
+                    'Userinfo' => "",
+                    'Host' => '[::ffff:192.0.2.1]',
+                    'Port' => null,
+                    'Path' => '/p',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => '[::ffff:192.0.2.1]',
+                    'ToString' => 'http://[::ffff:192.0.2.1]/p',
+                ]
+            ],
         ];
     }
 
@@ -847,6 +895,82 @@ class UriTest extends TestCase
         $this->assertSame('C', $uri->getHost());
         $this->assertSame(1, $uri->getPort());
         $this->assertSame('', $uri->getPath());
+    }
+
+    public static function ipv6Provider(): array
+    {
+        return [
+            // Input, host, port, path, authority
+            ['kafka://[::1]:9092', '[::1]', 9092, '', '[::1]:9092'],
+            ['kafka://[::1]', '[::1]', null, '', '[::1]'],
+            ['kafka://[2001:db8::1]:9092', '[2001:db8::1]', 9092, '', '[2001:db8::1]:9092'],
+            // RFC 6874 zone identifier
+            ['kafka://[fe80::1%25eth0]:9092', '[fe80::1%25eth0]', 9092, '', '[fe80::1%25eth0]:9092'],
+            // IPv4-mapped
+            ['http://[::ffff:192.0.2.1]/p', '[::ffff:192.0.2.1]', null, '/p', '[::ffff:192.0.2.1]'],
+            ['https://user:pw@[2001:db8::1]:443/p', '[2001:db8::1]', 443, '/p', 'user:pw@[2001:db8::1]:443'],
+        ];
+    }
+
+    /**
+     * RFC3986 section 3.2.2: the authority host is IP-literal / IPv4address / reg-name, and
+     * IP-literal keeps its brackets so the colons inside cannot be read as the port separator.
+     */
+    #[DataProvider('ipv6Provider')]
+    public function testIpv6LiteralIsParsedAsHost(
+        string $uriStr,
+        string $host,
+        ?int $port,
+        string $path,
+        string $authority
+    ) {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame($host, $uri->getHost());
+        $this->assertSame($port, $uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+        $this->assertSame($authority, $uri->getAuthority());
+
+        // The failure this replaces was silent: the literal survived inside the path, so the
+        // round-trip looked correct while every accessor was wrong. Assert both together.
+        $this->assertSame($uriStr, (string)$uri);
+    }
+
+    public static function notAnIpLiteralProvider(): array
+    {
+        return [
+            ['http://[]/p', '[]/p'],
+            ['http://[zzz]/p', '[zzz]/p'],
+            // IPvFuture (RFC3986 section 3.2.2) is deliberately not covered
+            ['http://[v7.foo]/p', '[v7.foo]/p'],
+            ['http://[::1', '[::1'],
+            ['http://::1]/p', '::1]/p'],
+        ];
+    }
+
+    /**
+     * Anything that is not shaped like an IP-literal keeps the previous behaviour: no host,
+     * and the text falls through to the path.
+     */
+    #[DataProvider('notAnIpLiteralProvider')]
+    public function testUnbracketedOrUnrecognisedLiteralIsNotAHost(string $uriStr, string $path)
+    {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame('', $uri->getHost());
+        $this->assertNull($uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+    }
+
+    /**
+     * Deliberate scope: the IP-literal branch accepts the character set of an IPv6 address
+     * rather than validating its structure, exactly as the reg-name branch does not validate
+     * a hostname. Address validation belongs to whatever consumes the host.
+     */
+    public function testIpLiteralIsNotValidated()
+    {
+        $this->assertSame('[:::]', (new Uri('http://[:::]/p'))->getHost());
+        $this->assertSame('[999.999.999.999]', (new Uri('http://[999.999.999.999]/p'))->getHost());
     }
 
     public static function queryProvider(): array

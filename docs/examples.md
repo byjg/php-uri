@@ -152,6 +152,30 @@ $uri = Uri::getInstance("file://C:\\Users\\John\\file.txt");
 echo $uri->getPath(); // "C:\\Users\\John\\file.txt"
 ```
 
+### IPv6 hosts
+
+An IPv6 literal is written in brackets, as RFC 3986 requires, so that the colons inside are
+not read as the port separator. `getHost()` returns the literal **with** its brackets, which
+is what `getAuthority()` and `__toString()` need to reassemble it:
+
+```php
+$uri = Uri::getInstance("kafka://[::1]:9092");
+
+echo $uri->getHost();      // "[::1]"
+echo $uri->getPort();      // 9092
+echo $uri->getAuthority(); // "[::1]:9092"
+
+// with userinfo, and a zone identifier (RFC 6874)
+Uri::getInstance("https://user:pw@[2001:db8::1]:443/p")->getHost(); // "[2001:db8::1]"
+Uri::getInstance("kafka://[fe80::1%25eth0]:9092")->getHost();       // "[fe80::1%25eth0]"
+```
+
+:::info
+The brackets are matched for their shape, not validated as an address -- just as a registered
+name is not validated as a hostname. Checking that an address is well formed belongs to
+whatever consumes the host. `IPvFuture` (`[v7.foo]`) is not supported.
+:::
+
 ### Drive letters and one-character hosts
 
 A Windows drive letter and a one-character host with a port look alike: `C:` and `h:`. They
