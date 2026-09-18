@@ -70,6 +70,55 @@ echo $uri->getQueryPart("empty");  // ""
 var_dump($uri->getQueryPart("missing")); // NULL
 ```
 
+The key is matched against the query exactly as it was written, so keys containing
+characters that are not valid in a PHP variable name resolve as well:
+
+```php
+$uri = Uri::getInstance("https://host/p?session.timeout.ms=6000&my%20key=a%20value");
+
+echo $uri->getQueryPart("session.timeout.ms"); // "6000"
+echo $uri->getQueryPart("my key");             // "a value"
+```
+
+If the key is repeated, the value of the **last** occurrence is returned. Use
+[`getQueryParts()`](#getqueryparts) to read every value.
+
+:::warning
+For backward compatibility, a key that is not found falls back to the `parse_str()` index,
+so the PHP-mangled name still resolves: `getQueryPart("session_timeout_ms")` returns
+`"6000"` too. **This fallback is deprecated and will be removed in 8.0** — ask for the key
+as it is written in the query.
+:::
+
+### getQueryParts()
+
+Retrieve **every** value of a query parameter, in the order they appear.
+
+```php
+public function getQueryParts(string $key): array
+```
+
+**Parameters**:
+- `$key` - The query parameter name
+
+**Returns**: A list of values. An empty array if the key doesn't exist, and `[""]` for a key
+present with no value.
+
+```php
+$uri = Uri::getInstance("https://example.com?tag=x&page=1&tag=y&tag=z");
+
+$uri->getQueryParts("tag");     // ["x", "y", "z"]
+$uri->getQueryParts("page");    // ["1"]
+$uri->getQueryParts("missing"); // []
+```
+
+This is the only way to read a repeated key, since `getQueryPart()` returns a single value.
+
+:::info
+Unlike `getQueryPart()`, this method never falls back on the deprecated `parse_str()`
+mangled key names: the key must be written exactly as it appears in the query.
+:::
+
 ### withQueryKeyValue()
 
 Add or update a single query parameter.
@@ -94,24 +143,34 @@ $uri = Uri::getInstance("https://example.com?existing=value");
 
 // Add a new parameter
 $uri = $uri->withQueryKeyValue("name", "John Doe");
-echo $uri->getQuery(); // "existing=value&name=John+Doe"
+echo $uri->getQuery(); // "existing=value&name=John%20Doe"
 
-// Update existing parameter
+// Update existing parameter, in place
 $uri = $uri->withQueryKeyValue("existing", "new-value");
-echo $uri->getQuery(); // "existing=new-value&name=John+Doe"
+echo $uri->getQuery(); // "existing=new-value&name=John%20Doe"
 
 // With pre-encoded value
 $uri = $uri->withQueryKeyValue("encoded", "already%20encoded", true);
-echo $uri->getQuery(); // "existing=new-value&name=John+Doe&encoded=already encoded"
+echo $uri->getQuery(); // "existing=new-value&name=John%20Doe&encoded=already%20encoded"
 ```
 
 :::info
 When `$isEncoded = true`, the value is decoded using `rawurldecode()` before storage. When `false`, the value is stored as-is.
 :::
 
+:::info
+An existing key is replaced where it already is, keeping the position of the other
+parameters. If the key appears more than once, the repeated occurrences are dropped.
+:::
+
 ### hasQueryKey()
 
 Check if a query parameter exists.
+
+:::warning
+As with `getQueryPart()`, a key that is not found falls back to the deprecated `parse_str()`
+index. That fallback will be removed in 8.0.
+:::
 
 ```php
 public function hasQueryKey(string $key): bool

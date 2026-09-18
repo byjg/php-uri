@@ -707,4 +707,198 @@ class UriTest extends TestCase
         $this->assertTrue($uri->hasQueryKey('q'));
         $this->assertFalse($uri->hasQueryKey('q2'));
     }
+
+    public static function queryProvider(): array
+    {
+        return [
+            // Input query, expected getQuery()
+            ['group.id=g1', 'group.id=g1'],                          // dot is unreserved (RFC3986 2.3)
+            ['tag=x&tag=y', 'tag=x&tag=y'],                          // repeated keys are kept, in order
+            ['a[]=1&a[]=2', 'a%5B%5D=1&a%5B%5D=2'],                  // brackets are not pchar, so encoded
+            ['my%20key=v', 'my%20key=v'],                            // encoded key stays encoded
+            ['flag', 'flag'],                                        // no "=" means no value
+            ['a=1&b.c=2', 'a=1&b.c=2'],
+            ['empty=', 'empty='],                                    // "=" with no value is kept
+            ['session.timeout.ms=6000', 'session.timeout.ms=6000'],
+            ['ca=%2Fpath%2Fto%2Fca', 'ca=%2Fpath%2Fto%2Fca'],        // reserved chars stay encoded
+            ['q=foo bar', 'q=foo%20bar'],                            // invalid chars get encoded
+            ['q=abc%3D%41', 'q=abc%3DA'],                            // unreserved chars get decoded
+        ];
+    }
+
+    #[DataProvider('queryProvider')]
+    public function testQueryIsPreserved(string $query, string $expected)
+    {
+        $this->assertEquals($expected, (new Uri('https://host/path?' . $query))->getQuery());
+    }
+
+    #[DataProvider('queryProvider')]
+    public function testQueryIsPreservedInToString(string $query, string $expected)
+    {
+        $this->assertEquals(
+            'https://host/path?' . $expected,
+            (string)(new Uri('https://host/path?' . $query))
+        );
+    }
+
+    #[DataProvider('queryProvider')]
+    public function testQueryNormalizationIsIdempotent(string $query, string $expected)
+    {
+        $uri = new Uri('https://host/path?' . $query);
+
+        $this->assertEquals($expected, (new Uri((string)$uri))->getQuery());
+    }
+
+    /**
+     * PSR-7: withQuery($query)->getQuery() must return the query it was given.
+     */
+    #[DataProvider('queryProvider')]
+    public function testWithQueryReturnsTheSameQuery(string $query, string $expected)
+    {
+        $uri = (new Uri('https://host/path'))->withQuery($expected);
+
+        $this->assertEquals($expected, $uri->getQuery());
+    }
+
+    public function testGetQueryPartWithDottedKey()
+    {
+        $uri = new Uri('https://host/path?session.timeout.ms=6000&auto.offset.reset=earliest');
+
+        $this->assertEquals('6000', $uri->getQueryPart('session.timeout.ms'));
+        $this->assertEquals('earliest', $uri->getQueryPart('auto.offset.reset'));
+        $this->assertTrue($uri->hasQueryKey('session.timeout.ms'));
+        $this->assertFalse($uri->hasQueryKey('session.timeout.us'));
+    }
+
+    public function testGetQueryPartWithEncodedKey()
+    {
+        $uri = new Uri('https://host/path?my%20key=a%20value');
+
+        $this->assertEquals('a value', $uri->getQueryPart('my key'));
+        $this->assertTrue($uri->hasQueryKey('my key'));
+    }
+
+    /**
+     * The parse_str() index is kept as a fallback, so the mangled key still resolves.
+     */
+    public function testGetQueryPartWithLegacyMangledKey()
+    {
+        $uri = new Uri('https://host/path?group.id=g1');
+
+        $this->assertEquals('g1', $uri->getQueryPart('group_id'));
+    }
+
+    /**
+     * parse_str() turns "a[]" into an array; getQueryPart() must not choke on it.
+     */
+    public function testGetQueryPartWithBracketKeyDoesNotThrow()
+    {
+        $uri = new Uri('https://host/path?a[]=1&a[]=2');
+
+        $this->assertNull($uri->getQueryPart('a'));
+        $this->assertEquals('2', $uri->getQueryPart('a[]'));
+    }
+
+    public function testGetQueryPartWithRepeatedKeyReturnsTheLast()
+    {
+        $uri = new Uri('https://host/path?tag=x&tag=y');
+
+        $this->assertEquals('y', $uri->getQueryPart('tag'));
+    }
+
+    public function testGetQueryPartsReturnsEveryValueInOrder()
+    {
+        $uri = new Uri('https://host/path?tag=x&page=1&tag=y&tag=z');
+
+        $this->assertEquals(['x', 'y', 'z'], $uri->getQueryParts('tag'));
+        $this->assertEquals(['1'], $uri->getQueryParts('page'));
+    }
+
+    public function testGetQueryPartsReturnsAnEmptyArrayWhenTheKeyIsAbsent()
+    {
+        $uri = new Uri('https://host/path?tag=x');
+
+        $this->assertEquals([], $uri->getQueryParts('missing'));
+    }
+
+    public function testGetQueryPartsDecodesTheValues()
+    {
+        $uri = new Uri('https://host/path?my%20key=a%20value&my%20key=%2Fpath');
+
+        $this->assertEquals(['a value', '/path'], $uri->getQueryParts('my key'));
+    }
+
+    public function testGetQueryPartsWithBracketKey()
+    {
+        $uri = new Uri('https://host/path?a[]=1&a[]=2');
+
+        $this->assertEquals(['1', '2'], $uri->getQueryParts('a[]'));
+    }
+
+    public function testGetQueryPartsReturnsAnEmptyStringForAValuelessKey()
+    {
+        $uri = new Uri('https://host/path?flag');
+
+        $this->assertSame([''], $uri->getQueryParts('flag'));
+    }
+
+    /**
+     * The mangled-name fallback is deprecated, so the new method must not honour it.
+     */
+    public function testGetQueryPartsIgnoresTheLegacyMangledKey()
+    {
+        $uri = new Uri('https://host/path?group.id=g1');
+
+        $this->assertEquals(['g1'], $uri->getQueryParts('group.id'));
+        $this->assertEquals([], $uri->getQueryParts('group_id'));
+    }
+
+    public function testGetQueryPartsAfterWithQueryKeyValue()
+    {
+        $uri = (new Uri('https://host/path?tag=x&tag=y'))->withQueryKeyValue('tag', 'z');
+
+        $this->assertEquals(['z'], $uri->getQueryParts('tag'));
+    }
+
+    public function testWithQueryKeyValueKeepsTheOtherPairsUntouched()
+    {
+        $uri = (new Uri('https://host/path?group.id=g1&flag&tag=x'))
+            ->withQueryKeyValue('client.id', 'c1');
+
+        $this->assertEquals('group.id=g1&flag&tag=x&client.id=c1', $uri->getQuery());
+        $this->assertEquals('c1', $uri->getQueryPart('client.id'));
+    }
+
+    public function testWithQueryKeyValueReplacesInPlaceAndCollapsesRepeatedKeys()
+    {
+        $uri = (new Uri('https://host/path?tag=x&other=1&tag=y'))
+            ->withQueryKeyValue('tag', 'z');
+
+        $this->assertEquals('tag=z&other=1', $uri->getQuery());
+        $this->assertEquals('z', $uri->getQueryPart('tag'));
+    }
+
+    public function testWithQueryKeyValueEncodesTheKey()
+    {
+        $uri = (new Uri('https://host/path'))->withQueryKeyValue('a key', 'a value');
+
+        $this->assertEquals('a%20key=a%20value', $uri->getQuery());
+        $this->assertEquals('a value', $uri->getQueryPart('a key'));
+    }
+
+    /**
+     * A pre-signed URL only survives if order, repetition and encoding are left alone.
+     */
+    public function testPreSignedUrlRoundTrip()
+    {
+        $url = 'https://bucket.s3.amazonaws.com/key.txt'
+            . '?X-Amz-Algorithm=AWS4-HMAC-SHA256'
+            . '&X-Amz-Credential=AKIA%2F20260918%2Fus-east-1%2Fs3%2Faws4_request'
+            . '&X-Amz-Date=20260918T000000Z'
+            . '&X-Amz-Expires=900'
+            . '&X-Amz-SignedHeaders=host'
+            . '&X-Amz-Signature=abc123';
+
+        $this->assertEquals($url, (string)(new Uri($url)));
+    }
 }
