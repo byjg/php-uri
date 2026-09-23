@@ -168,10 +168,16 @@ class Uri implements CustomUriInterface
 
     /**
      * Normalize a raw query key or value: decode it, then re-encode it as RFC3986 requires.
+     *
+     * A literal "+" is kept as written. It is a valid query character (RFC3986 sub-delim) and
+     * form encoding reads it as a space, so turning it into "%2B" would change the value.
      */
     private function encodeQueryComponent(string $component): string
     {
-        return rawurlencode(rawurldecode($component));
+        return implode('+', array_map(
+            fn(string $segment): string => rawurlencode(rawurldecode($segment)),
+            explode('+', $component)
+        ));
     }
 
     /**

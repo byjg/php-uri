@@ -988,6 +988,10 @@ class UriTest extends TestCase
             ['ca=%2Fpath%2Fto%2Fca', 'ca=%2Fpath%2Fto%2Fca'],        // reserved chars stay encoded
             ['q=foo bar', 'q=foo%20bar'],                            // invalid chars get encoded
             ['q=abc%3D%41', 'q=abc%3DA'],                            // unreserved chars get decoded
+            ['q=Rio+de+Janeiro', 'q=Rio+de+Janeiro'],                // "+" is kept, never turned into %2B
+            ['q=1%2B1', 'q=1%2B1'],                                  // an encoded "+" stays encoded
+            ['q=a+b%2Bc', 'q=a+b%2Bc'],                              // both forms keep their own meaning
+            ['a+b=1', 'a+b=1'],                                      // "+" in a key is kept too
         ];
     }
 

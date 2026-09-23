@@ -79,7 +79,9 @@ survives a round-trip through `Uri` with its signature intact.
 1. **During parsing**: Passwords are decoded using `rawurldecode()`
 2. **During output**: Passwords in `getUserInfo()` are re-encoded with `rawurlencode()`
 3. **Query strings**: Each key and value is decoded with `rawurldecode()` and re-encoded with
-   `rawurlencode()`, then the pairs are joined back with `&`
+   `rawurlencode()`, then the pairs are joined back with `&`. A literal `+` is kept as written
+   and never becomes `%2B`: form encoding reads `+` as a space and `%2B` as a plus sign, so
+   converting one into the other would change the value
 
 Normalizing this way means characters that must be encoded get encoded (a literal space
 becomes `%20`), while an already-encoded unreserved character is folded back to its literal

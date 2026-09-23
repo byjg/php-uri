@@ -17,6 +17,7 @@
   | `?a[]=1&a[]=2` | `?a%5B0%5D=1&a%5B1%5D=2` | `?a%5B%5D=1&a%5B%5D=2` |
   | `?my%20key=v` | `?my_key=v` | `?my%20key=v` |
   | `?flag` | `?flag=` | `?flag` |
+  | `?q=a+b` | `?q=a%20b` | `?q=a+b` |
 
   `parse_str()` is a form-data decoder that produces PHP variable names, not a URI query
   parser — it rewrites `.` and space to `_`, keeps only the last of a repeated key, and
