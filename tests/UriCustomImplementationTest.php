@@ -23,6 +23,9 @@ class UriCustomImplementationTest extends TestCase
         $this->assertTrue($uri->hasQueryKey("query"));
         $this->assertFalse($uri->hasQueryKey("other"));
 
+        $this->assertEquals(["1"], $uri->getQueryParts("query"));
+        $this->assertEquals([], $uri->getQueryParts("other"));
+
         $uri = $uri->withQueryKeyValue("other", "value");
         $this->assertEquals("1", $uri->getQueryPart("query"));
         $this->assertEquals("2", $uri->getQueryPart("test"));

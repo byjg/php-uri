@@ -15,6 +15,24 @@ class Uri implements CustomUriInterface
     private string $path = '';
     private string $scheme = '';
     private ?int $port = null;
+
+    /**
+     * The query as an ordered list of raw (still percent-encoded) key/value pairs.
+     * A null value means the key was given without "=" at all (e.g. "?flag").
+     *
+     * @var list<array{0: string, 1: string|null}>
+     */
+    private array $queryPairs = [];
+
+    /**
+     * Index built by parse_str(). Kept only as a fallback for getQueryPart()/hasQueryKey(),
+     * so callers relying on the PHP-mangled key names (e.g. "group_id" for "group.id")
+     * keep working.
+     *
+     * @deprecated The mangled-name fallback is removed in 8.0. Ask for the real key instead,
+     *             or use getQueryParts(), which never consults this index.
+     * @var array<string, mixed>
+     */
     private array $query = [];
 
     #[Override]
@@ -124,6 +142,14 @@ class Uri implements CustomUriInterface
 
     protected function setQuery(string $query): self
     {
+        $this->queryPairs = [];
+        foreach (explode('&', $query) as $pair) {
+            if ($pair === '') {
+                continue;
+            }
+            $parts = explode('=', $pair, 2);
+            $this->queryPairs[] = [$parts[0], $parts[1] ?? null];
+        }
         parse_str($query, $this->query);
         return $this;
     }
@@ -131,7 +157,27 @@ class Uri implements CustomUriInterface
     #[Override]
     public function getQuery(): string
     {
-        return http_build_query($this->query, "", "&", PHP_QUERY_RFC3986);
+        $query = [];
+        foreach ($this->queryPairs as [$key, $value]) {
+            $query[] = $this->encodeQueryComponent($key)
+                . ($value === null ? '' : '=' . $this->encodeQueryComponent($value));
+        }
+
+        return implode('&', $query);
+    }
+
+    /**
+     * Normalize a raw query key or value: decode it, then re-encode it as RFC3986 requires.
+     *
+     * A literal "+" is kept as written. It is a valid query character (RFC3986 sub-delim) and
+     * form encoding reads it as a space, so turning it into "%2B" would change the value.
+     */
+    private function encodeQueryComponent(string $component): string
+    {
+        return implode('+', array_map(
+            fn(string $segment): string => rawurlencode(rawurldecode($segment)),
+            explode('+', $component)
+        ));
     }
 
     /**
@@ -144,12 +190,47 @@ class Uri implements CustomUriInterface
     public function withQueryKeyValue(string $key, string $value, bool $isEncoded = false): self
     {
         $clone = clone $this;
-        $clone->query[$key] = ($isEncoded ? rawurldecode($value) : $value);
+        $clone->setQueryPair(
+            rawurlencode($key),
+            rawurlencode($isEncoded ? rawurldecode($value) : $value)
+        );
         return $clone;
     }
 
     /**
+     * Replace the first occurrence of $rawKey (dropping any repeated ones) or append it.
+     */
+    private function setQueryPair(string $rawKey, string $rawValue): void
+    {
+        $pairs = [];
+        $found = false;
+        foreach ($this->queryPairs as $pair) {
+            if ($this->encodeQueryComponent($pair[0]) !== $rawKey) {
+                $pairs[] = $pair;
+                continue;
+            }
+            if (!$found) {
+                $pairs[] = [$rawKey, $rawValue];
+                $found = true;
+            }
+        }
+        if (!$found) {
+            $pairs[] = [$rawKey, $rawValue];
+        }
+
+        $this->queryPairs = $pairs;
+        parse_str($this->getQuery(), $this->query);
+    }
+
+    /**
      * Not from UriInterface
+     *
+     * The value of $key, or of its last occurrence if the key is repeated. Use getQueryParts()
+     * to read every value.
+     *
+     * If the key is not in the query, it is looked up once more in the parse_str() index, so a
+     * PHP-mangled name such as "group_id" still resolves "group.id". That fallback is
+     * deprecated and is removed in 8.0.
      *
      * @param string $key
      * @return ?string
@@ -157,12 +238,51 @@ class Uri implements CustomUriInterface
     #[Override]
     public function getQueryPart(string $key): ?string
     {
-        return $this->getFromArray($this->query, $key, null);
+        $values = $this->getQueryParts($key);
+        if (count($values) > 0) {
+            return end($values);
+        }
+
+        /** @deprecated Fallback on the parse_str() mangled key name; removed in 8.0. */
+        $legacy = $this->query[$key] ?? null;
+        return is_string($legacy) ? $legacy : null;
     }
 
+    /**
+     * Not from UriInterface
+     *
+     * Every value for $key, in the order they appear in the query. Unlike getQueryPart(),
+     * this never falls back on the parse_str() mangled key names.
+     *
+     * @param string $key
+     * @return list<string>
+     */
+    #[Override]
+    public function getQueryParts(string $key): array
+    {
+        $values = [];
+        foreach ($this->queryPairs as [$rawKey, $rawValue]) {
+            if (rawurldecode($rawKey) === $key) {
+                $values[] = $rawValue === null ? '' : rawurldecode($rawValue);
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * As with getQueryPart(), a key that is not in the query falls back on the parse_str()
+     * index. That fallback is deprecated and is removed in 8.0.
+     */
     #[Override]
     public function hasQueryKey(string $key): bool
     {
+        foreach ($this->queryPairs as [$rawKey]) {
+            if (rawurldecode($rawKey) === $key) {
+                return true;
+            }
+        }
+
         return isset($this->query[$key]);
     }
 
@@ -244,7 +364,7 @@ class Uri implements CustomUriInterface
             . "(?:(?P<scheme>\w+):\/\/)?"
             . "(?:(?P<user>\S+?):(?P<pass>\S+)@)?"
             . "(?:(?P<user2>\S+)@)?"
-            . "(?P<host>(?![A-Za-z]:)[\w\-]+(?:\.[\w\-]+)*)?"
+            . "(?P<host>\[[0-9A-Fa-f:.]+(?:%25[\w\-.~]+)?\]|(?![A-Za-z]:(?!\d))[\w\-]+(?:\.[\w\-]+)*)?"
             . "(?::(?P<port>\d+))?"
             . "(?P<path>([A-Za-z]:)?[^?#]+)?"
             . "(?:\?(?P<query>[^#]+))?"
