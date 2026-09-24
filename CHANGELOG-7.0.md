@@ -114,6 +114,9 @@
 
 - None for well-formed input; `getQuery()` and `__toString()` now return the query the way
   it was given, so any code asserting on the mangled output above must be updated.
+- `getQueryPart()` and `getQueryParts()` decode values as RFC3986, where `+` is a literal
+  plus sign: `?q=a+b` now returns `"a+b"`, while 6.x (`parse_str()`) returned `"a b"`. A
+  space should be sent as `%20`; `withQueryKeyValue()` already encodes it that way.
 
 ## Requirements
 
