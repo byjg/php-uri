@@ -100,6 +100,14 @@
   `php-anydataset-db`, `php-rabbitmq-client`, `php-migration` and `php-mailwrapper` — all of
   which read single-valued DSN options — keep working untouched.
 
+- `Uri::getInstance()` now returns `static` instead of `UriInterface`, so callers get the
+  concrete type without narrowing it, and a subclass gets an instance of itself:
+
+  ```php
+  $uri = Uri::getInstance('https://example.com');   // Uri, not UriInterface
+  $uri = MyUri::getInstance('https://example.com'); // MyUri
+  ```
+
 ## Deprecations
 
 - **The `parse_str()` mangled-name fallback in `getQueryPart()` and `hasQueryKey()` is
@@ -117,6 +125,8 @@
 - `getQueryPart()` and `getQueryParts()` decode values as RFC3986, where `+` is a literal
   plus sign: `?q=a+b` now returns `"a+b"`, while 6.x (`parse_str()`) returned `"a b"`. A
   space should be sent as `%20`; `withQueryKeyValue()` already encodes it that way.
+- `Uri::getInstance()` is declared `: static`. A subclass that overrides it with a
+  `: UriInterface` return type must narrow it to `: static`.
 
 ## Requirements
 

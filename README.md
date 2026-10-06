@@ -12,7 +12,7 @@ A PHP implementation of PSR-7 UriInterface with additional utility methods.
 [![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-uri/)
 [![GitHub license](https://img.shields.io/github/license/byjg/php-uri.svg)](https://opensource.byjg.com/license/)
-[![GitHub release](https://img.shields.io/github/release/byjg/php-uri.svg)](https://github.com/byjg/uri/releases/)
+[![GitHub release](https://img.shields.io/github/release/byjg/php-uri.svg)](https://github.com/byjg/php-uri/releases/)
 
 ## Features
 

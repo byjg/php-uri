@@ -7,6 +7,8 @@ use Psr\Http\Message\UriInterface;
 
 /**
  * Class Uri
+ *
+ * @psalm-consistent-constructor
  */
 class Uri implements CustomUriInterface
 {
@@ -407,12 +409,12 @@ class Uri implements CustomUriInterface
         return self::getInstance($uri);
     }
 
-    public static function getInstance(string|UriInterface|null $uri = null): UriInterface
+    public static function getInstance(string|UriInterface|null $uri = null): static
     {
         if ($uri instanceof UriInterface) {
-            return new Uri((string)$uri);
+            return new static((string)$uri);
         }
 
-        return new Uri($uri);
+        return new static($uri);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Test;
+namespace Tests;
 
 use ByJG\Util\CustomUriInterface;
 use ByJG\Util\Uri;
@@ -710,6 +710,23 @@ class UriTest extends TestCase
 
         $uri2 = Uri::getInstance($uri);
         $this->assertEquals($uriString, $uri2->__toString());
+    }
+
+    public function testFactoryReturnsCalledClass()
+    {
+        $uriString = 'https://user:pass@host/path?query=1#fragment';
+
+        $this->assertSame(Uri::class, get_class(Uri::getInstance($uriString)));
+
+        $subclass = new class extends Uri {
+        };
+        $uri = $subclass::getInstance($uriString);
+        $this->assertInstanceOf($subclass::class, $uri);
+        $this->assertSame($uriString, (string)$uri);
+
+        $fromUri = $subclass::getInstance(new Uri($uriString));
+        $this->assertInstanceOf($subclass::class, $fromUri);
+        $this->assertSame($uriString, (string)$fromUri);
     }
 
     public function testFactory2()

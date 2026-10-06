@@ -13,13 +13,14 @@ The primary factory method that accepts multiple input types.
 ```php
 public static function getInstance(
     string|UriInterface|null $uri = null
-): UriInterface
+): static
 ```
 
 **Parameters**:
 - `$uri` - Can be a string, a `UriInterface` instance, or `null`
 
-**Returns**: A new `Uri` instance
+**Returns**: A new instance of the class it is called on - `Uri`, or the subclass when
+called as `MyUri::getInstance()`
 
 ### Create from String
 
