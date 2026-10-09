@@ -49,13 +49,49 @@ $uri = Uri::getInstance("https://example.com")
     ->withQuery("name=John Doe&email=john@example.com");
 
 echo $uri->getQuery();
-// "name=John+Doe&email=john%40example.com"
+// "name=John%20Doe&email=john%40example.com"
 ```
+
+The query is kept as an ordered list of key/value pairs, exactly as it was given. Only the
+encoding is normalized, so the *structure* of the query always survives a round-trip:
+
+```php
+// Dots and other unreserved characters are left alone (RFC3986 section 2.3)
+echo (string)Uri::getInstance("https://host/p?session.timeout.ms=6000");
+// "https://host/p?session.timeout.ms=6000"
+
+// Repeated keys are kept, in order
+echo (string)Uri::getInstance("https://host/p?tag=x&tag=y");
+// "https://host/p?tag=x&tag=y"
+
+// A key with no "=" does not gain an empty value
+echo (string)Uri::getInstance("https://host/p?flag");
+// "https://host/p?flag"
+```
+
+:::info
+Because order, repetition and encoding are preserved, a pre-signed URL (S3, CloudFront)
+survives a round-trip through `Uri` with its signature intact.
+:::
 
 ## How Encoding Works Internally
 
 1. **During parsing**: Passwords are decoded using `rawurldecode()`
 2. **During output**: Passwords in `getUserInfo()` are re-encoded with `rawurlencode()`
-3. **Query strings**: Built using `http_build_query()` with `PHP_QUERY_RFC3986` flag
+3. **Query strings**: Each key and value is decoded with `rawurldecode()` and re-encoded with
+   `rawurlencode()`, then the pairs are joined back with `&`. A literal `+` is kept as written
+   and never becomes `%2B`: form encoding reads `+` as a space and `%2B` as a plus sign, so
+   converting one into the other would change the value
 
-This ensures that URIs can be parsed and re-serialized idempotently (parsing the output produces the same URI).
+Normalizing this way means characters that must be encoded get encoded (a literal space
+becomes `%20`), while an already-encoded unreserved character is folded back to its literal
+form (`%41` becomes `A`). This ensures that URIs can be parsed and re-serialized idempotently
+(parsing the output produces the same URI).
+
+:::warning
+`parse_str()` is **not** used to build the query string. It is a form-data decoder that
+produces PHP variable names: it rewrites `.` and space to `_`, keeps only the last of a
+repeated key, and turns `a[]` into an array — see
+[php/php-src#8639](https://github.com/php/php-src/issues/8639). It is still used to build a
+fallback lookup index for `getQueryPart()`, so the mangled names keep resolving.
+:::
