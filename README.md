@@ -9,7 +9,8 @@ A PHP implementation of PSR-7 UriInterface with additional utility methods.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%23ea4aaa?logo=githubsponsors&logoColor=white&labelColor=0d1117)](https://github.com/sponsors/byjg)
 [![Build Status](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml)
-[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
+[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](https://opensource.byjg.com)
+[![Install MCP Server](https://img.shields.io/badge/Install-MCP_Server-8A2BE2?logo=modelcontextprotocol&logoColor=white)](https://opensource.byjg.com/docs/ai/mcpserver-byjg-docs/)
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-uri/)
 [![GitHub license](https://img.shields.io/github/license/byjg/php-uri.svg)](https://opensource.byjg.com/license/)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-uri.svg)](https://github.com/byjg/php-uri/releases/)
@@ -81,13 +82,13 @@ $uri2 = Uri::getInstance($uri);
 - [Factory Methods](docs/factory-methods.md)
 - [Examples](docs/examples.md)
 
-## Install
+## Installation
 
 ```bash
 composer require "byjg/uri"
 ```
 
-## Unit tests
+## Running Tests
 
 ```bash
 vendor/bin/phpunit
