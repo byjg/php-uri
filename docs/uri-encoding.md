@@ -22,13 +22,14 @@ echo (string)$uri; // "https://user:pa%26@host"
 
 ## Using withUserInfo
 
-The `withUserInfo()` method does NOT encode the password automatically:
+The `withUserInfo()` method stores the password as given, without decoding it. It is encoded
+on output, so pass it unencoded:
 
 ```php
 // Using withUserInfo with unencoded password
 $uri = Uri::getInstance("https://host")
     ->withUserInfo("user", "pa&");
-echo (string)$uri; // "https://user:pa&@host"
+echo (string)$uri; // "https://user:pa%26@host"
 
 // Using withUserInfo with already encoded password
 $uri = Uri::getInstance("https://host")

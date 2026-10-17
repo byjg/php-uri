@@ -127,6 +127,8 @@
   space should be sent as `%20`; `withQueryKeyValue()` already encodes it that way.
 - `Uri::getInstance()` is declared `: static`. A subclass that overrides it with a
   `: UriInterface` return type must narrow it to `: static`.
+- `CustomUriInterface` declares the new `getQueryParts(string $key): array`. A class that
+  implements the interface directly, instead of extending `Uri`, must add it.
 
 ## Requirements
 

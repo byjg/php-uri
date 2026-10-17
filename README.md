@@ -41,7 +41,7 @@ print((string)$uri); // Will print "https://user:pa%26@host"
 // Using withUserInfo with unencoded password
 $uri = \ByJG\Util\Uri::getInstance("https://host")
     ->withUserInfo("user", "pa&");
-print((string)$uri); // Will print "https://user:pa&@host"
+print((string)$uri); // Will print "https://user:pa%26@host"
 
 // Using withUserInfo with already encoded password
 $uri = \ByJG\Util\Uri::getInstance("https://host")
@@ -58,6 +58,7 @@ This implementation extends PSR-7 UriInterface with the following additional met
 | `getUsername(): ?string`                                                       | Get the username component of the URI |
 | `getPassword(): ?string`                                                       | Get the password component of the URI |
 | `getQueryPart(string $key): ?string`                                           | Get a specific query parameter by key |
+| `getQueryParts(string $key): array`                                            | Get every value of a query parameter  |
 | `withQueryKeyValue(string $key, string $value, bool $isEncoded = false): self` | Add or update a query parameter       |
 | `hasQueryKey(string $key): bool`                                               | Check if a query parameter exists     |
 

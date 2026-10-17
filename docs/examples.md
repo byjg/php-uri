@@ -90,7 +90,7 @@ $uri = $uri
     ->withQueryKeyValue("sort", "price");
 
 echo (string)$uri;
-// "https://api.example.com/search?q=search+term&category=books&sort=price"
+// "https://api.example.com/search?q=search%20term&category=books&sort=price"
 ```
 
 ### Reading Parameters

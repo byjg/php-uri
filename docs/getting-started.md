@@ -16,7 +16,7 @@ composer require "byjg/uri"
 
 ## Requirements
 
-- PHP 8.3, 8.4, or 8.5
+- PHP 8.3, 8.4, 8.5 or 8.6
 - psr/http-message (^1.0|^1.1|^2.0)
 
 ## Basic Usage
