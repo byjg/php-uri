@@ -1,6 +1,6 @@
 <?php
 
-namespace Test;
+namespace Tests;
 
 use ByJG\Util\CustomUriInterface;
 use ByJG\Util\Uri;
@@ -79,13 +79,14 @@ class UriTest extends TestCase
                     'Scheme' => 'https',
                     'Username' => 'email@host.com.br',
                     'Password' => 'password',
-                    'Userinfo' => 'email@host.com.br:password',
+                    'Userinfo' => 'email%40host.com.br:password',
                     'Host' => 'hostname',
                     'Port' => null,
                     'Path' => '/path/path2',
                     'Query' => 'arg=value&arg2=value2',
                     'Fragment' => 'anchor',
-                    'Authority' => 'email@host.com.br:password@hostname'
+                    'Authority' => 'email%40host.com.br:password@hostname',
+                    'ToString' => 'https://email%40host.com.br:password@hostname/path/path2?arg=value&arg2=value2#anchor'
                 ]
             ],
             [ // #5
@@ -169,14 +170,14 @@ class UriTest extends TestCase
                     'Scheme' => 'mysql',
                     'Username' => 'ro@11!%&*(ot',
                     'Password' => 'pass@(*&!$$word',
-                    'Userinfo' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word',
+                    'Userinfo' => 'ro%4011%21%25%26%2A%28ot:pass%40%28%2A%26%21%24%24word',
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extra_param=10',
                     'Fragment' => '',
-                    'Authority' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306',
-                    'ToString' => 'mysql://ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extra_param=10'
+                    'Authority' => 'ro%4011%21%25%26%2A%28ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306',
+                    'ToString' => 'mysql://ro%4011%21%25%26%2A%28ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extra_param=10'
                 ]
             ],
             [ // #11
@@ -290,14 +291,14 @@ class UriTest extends TestCase
                     'Scheme' => 'smtp',
                     'Username' => 'us#$%er',
                     'Password' => 'pa!*&$ss',
-                    'Userinfo' => 'us#$%er:pa%21%2A%26%24ss',
+                    'Userinfo' => 'us%23%24%25er:pa%21%2A%26%24ss',
                     'Host' => 'host.com.br',
                     'Port' => 45,
                     'Path' => '',
                     'Query' => null,
                     'Fragment' => '',
-                    'Authority' => 'us#$%er:pa%21%2A%26%24ss@host.com.br:45',
-                    'ToString' => 'smtp://us#$%er:pa%21%2A%26%24ss@host.com.br:45',
+                    'Authority' => 'us%23%24%25er:pa%21%2A%26%24ss@host.com.br:45',
+                    'ToString' => 'smtp://us%23%24%25er:pa%21%2A%26%24ss@host.com.br:45',
                 ]
             ],
             [ // #19
@@ -441,8 +442,8 @@ class UriTest extends TestCase
                 'https://host/path?key=value 1&key2=á%1$@a#fra%!',
                 [
                     'Scheme' => 'https',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => "host",
                     'Port' => null,
@@ -457,8 +458,8 @@ class UriTest extends TestCase
                 'https://example.com/path/to?q=foo bar&q2=foo%20bar&q3=abc%3D%41#section-42',
                 [
                     'Scheme' => 'https',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => "example.com",
                     'Port' => null,
@@ -467,6 +468,118 @@ class UriTest extends TestCase
                     'Fragment' => 'section-42',
                     'Authority' => "example.com",
                     'ToString' => 'https://example.com/path/to?q=foo%20bar&q2=foo%20bar&q3=abc%3DA#section-42',
+                ]
+            ],
+            [ // #30
+                'kafka://h:9092',
+                [
+                    'Scheme' => 'kafka',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => "",
+                    'Host' => 'h',
+                    'Port' => 9092,
+                    'Path' => '',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'h:9092',
+                    'ToString' => 'kafka://h:9092',
+                ]
+            ],
+            [ // #31
+                'kafka://a:9092/path',
+                [
+                    'Scheme' => 'kafka',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => "",
+                    'Host' => 'a',
+                    'Port' => 9092,
+                    'Path' => '/path',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'a:9092',
+                    'ToString' => 'kafka://a:9092/path',
+                ]
+            ],
+            [ // #32
+                'mysql://user:pw@h:3306/db',
+                [
+                    'Scheme' => 'mysql',
+                    'Username' => 'user',
+                    'Password' => 'pw',
+                    'Userinfo' => 'user:pw',
+                    'Host' => 'h',
+                    'Port' => 3306,
+                    'Path' => '/db',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'user:pw@h:3306',
+                    'ToString' => 'mysql://user:pw@h:3306/db',
+                ]
+            ],
+            [ // #33
+                'h:9092',
+                [
+                    'Scheme' => "",
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => "",
+                    'Host' => 'h',
+                    'Port' => 9092,
+                    'Path' => '',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'h:9092',
+                    'ToString' => 'h:9092',
+                ]
+            ],
+            [ // #34
+                'kafka://[::1]:9092',
+                [
+                    'Scheme' => 'kafka',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => "",
+                    'Host' => '[::1]',
+                    'Port' => 9092,
+                    'Path' => '',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => '[::1]:9092',
+                    'ToString' => 'kafka://[::1]:9092',
+                ]
+            ],
+            [ // #35
+                'https://user:pw@[2001:db8::1]:443/p?q=1#f',
+                [
+                    'Scheme' => 'https',
+                    'Username' => 'user',
+                    'Password' => 'pw',
+                    'Userinfo' => 'user:pw',
+                    'Host' => '[2001:db8::1]',
+                    'Port' => 443,
+                    'Path' => '/p',
+                    'Query' => 'q=1',
+                    'Fragment' => 'f',
+                    'Authority' => 'user:pw@[2001:db8::1]:443',
+                    'ToString' => 'https://user:pw@[2001:db8::1]:443/p?q=1#f',
+                ]
+            ],
+            [ // #36
+                'http://[::ffff:192.0.2.1]/p',
+                [
+                    'Scheme' => 'http',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => "",
+                    'Host' => '[::ffff:192.0.2.1]',
+                    'Port' => null,
+                    'Path' => '/p',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => '[::ffff:192.0.2.1]',
+                    'ToString' => 'http://[::ffff:192.0.2.1]/p',
                 ]
             ],
         ];
@@ -483,14 +596,14 @@ class UriTest extends TestCase
     public function testParseUsername(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
-        $this->assertEquals($assertFields["Username"], $uri->getUsername());
+        $this->assertSame($assertFields["Username"], $uri->getUsername());
     }
 
     #[DataProvider('uriProvider')]
     public function testParsePassword(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
-        $this->assertEquals($assertFields["Password"], $uri->getPassword());
+        $this->assertSame($assertFields["Password"], $uri->getPassword());
     }
 
     #[DataProvider('uriProvider')]
@@ -552,6 +665,140 @@ class UriTest extends TestCase
         $this->assertEquals($uriStr, $uri->__toString());
     }
 
+    public static function userInfoProvider(): array
+    {
+        // uri, username, password, userinfo
+        return [
+            'user and password' => ['redis://user:pass@host:6379', 'user', 'pass', 'user:pass'],
+            'user only' => ['redis://user@host:6379', 'user', null, 'user'],
+            'password only' => ['redis://:mypassword@host:6379', '', 'mypassword', ':mypassword'],
+            'password only, encoded' => ['redis://:p%40ss%3Aw@host:6379', '', 'p@ss:w', ':p%40ss%3Aw'],
+            'user encoded' => ['redis://us%40er:p%40ss@host:6379', 'us@er', 'p@ss', 'us%40er:p%40ss'],
+            'user encoded, no password' => ['redis://us%3Aer@host:6379', 'us:er', null, 'us%3Aer'],
+            'no userinfo' => ['redis://host:6379', null, null, ''],
+            'password "0"' => ['redis://user:0@host:6379', 'user', '0', 'user:0'],
+            'password "0" only' => ['redis://:0@host:6379', '', '0', ':0'],
+            'user "0", no password' => ['redis://0@host:6379', '0', null, '0'],
+            'empty password' => ['redis://user:@host:6379', 'user', '', 'user:'],
+        ];
+    }
+
+    #[DataProvider('userInfoProvider')]
+    public function testParseUserInfoParts(string $uriStr, ?string $username, ?string $password, string $userInfo)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertSame($username, $uri->getUsername());
+        $this->assertSame($password, $uri->getPassword());
+        $this->assertSame($userInfo, $uri->getUserInfo());
+        $this->assertSame('host', $uri->getHost());
+        $this->assertSame(6379, $uri->getPort());
+        $this->assertSame($uriStr, (string)$uri);
+    }
+
+    public function testRawUserIsReEmittedEncoded()
+    {
+        $uri = new Uri('mongodb://us@er:p@ss@host:27017');
+        $this->assertSame('us@er', $uri->getUsername());
+        $this->assertSame('p@ss', $uri->getPassword());
+        $this->assertSame('us%40er:p%40ss', $uri->getUserInfo());
+        $this->assertSame('mongodb://us%40er:p%40ss@host:27017', (string)$uri);
+    }
+
+    public function testRawPercentThatIsNotAnEscapeIsKept()
+    {
+        // "%&*" is not a valid escape, so it is read literally and encoded as "%25" on output
+        $uri = new Uri('mysql://ro%&ot:pw@host');
+        $this->assertSame('ro%&ot', $uri->getUsername());
+        $this->assertSame('ro%25%26ot:pw', $uri->getUserInfo());
+    }
+
+    public function testWithUserInfoEncodesTheUser()
+    {
+        $uri = Uri::getInstance('https://host')->withUserInfo('us:er@x', 'p:w');
+        $this->assertSame('us:er@x', $uri->getUsername());
+        $this->assertSame('us%3Aer%40x:p%3Aw', $uri->getUserInfo());
+        $this->assertSame('us%3Aer%40x:p%3Aw@host', $uri->getAuthority());
+        $this->assertSame('https://us%3Aer%40x:p%3Aw@host', (string)$uri);
+
+        $parsed = new Uri((string)$uri);
+        $this->assertSame('us:er@x', $parsed->getUsername());
+        $this->assertSame('p:w', $parsed->getPassword());
+    }
+
+    public static function userInfoIdempotencyProvider(): array
+    {
+        return [
+            ['https://email@host.com.br:password@hostname/path'],
+            ['mysql://ro@11!%&*(ot:pass@(*&!$$word@host-10.com:3306/database'],
+            ['smtp://us#$%er:pa!*&$ss@host.com.br:45'],
+            ['mongodb://us%40er:p%40ss@host'],
+            ['redis://:mypassword@host:6379'],
+            ['smtp://us:er:pass@host.com.br:45'],
+        ];
+    }
+
+    #[DataProvider('userInfoIdempotencyProvider')]
+    public function testUserInfoRoundTripIsIdempotent(string $uriStr)
+    {
+        $uri = new Uri($uriStr);
+        $parsed = new Uri((string)$uri);
+        $this->assertSame($uri->getUsername(), $parsed->getUsername());
+        $this->assertSame($uri->getPassword(), $parsed->getPassword());
+        $this->assertSame((string)$uri, (string)$parsed);
+    }
+
+    public static function withUserInfoProvider(): array
+    {
+        // user, password, expected string form
+        return [
+            'user only' => ['user', null, 'redis://user@host'],
+            'password "0"' => ['user', '0', 'redis://user:0@host'],
+            'empty password' => ['user', '', 'redis://user:@host'],
+            'user "0"' => ['0', null, 'redis://0@host'],
+            'user "0", password "0"' => ['0', '0', 'redis://0:0@host'],
+        ];
+    }
+
+    #[DataProvider('withUserInfoProvider')]
+    public function testWithUserInfoRoundTrips(string $user, ?string $password, string $expected)
+    {
+        $uri = Uri::getInstance('redis://host')->withUserInfo($user, $password);
+        $this->assertSame($expected, (string)$uri);
+
+        $parsed = new Uri((string)$uri);
+        $this->assertSame($user, $parsed->getUsername());
+        $this->assertSame($password, $parsed->getPassword());
+    }
+
+    public function testParsedSchemeIsLowercase()
+    {
+        $uri = new Uri('HTTP://Example.com/Path');
+        $this->assertSame('http', $uri->getScheme());
+        $this->assertSame('http://Example.com/Path', (string)$uri);
+        $this->assertSame($uri->getScheme(), $uri->withScheme('HTTP')->getScheme());
+    }
+
+    public static function withEmptyUserProvider(): array
+    {
+        return [
+            'no password' => [null],
+            'with password' => ['p@ss'],
+            'empty password' => [''],
+        ];
+    }
+
+    #[DataProvider('withEmptyUserProvider')]
+    public function testWithUserInfoEmptyUserRemovesUserInfo(?string $password)
+    {
+        // PSR-7: "an empty string for the user is equivalent to removing user information"
+        $uri = Uri::getInstance('redis://user:pw@host:6379')->withUserInfo('', $password);
+        $this->assertNull($uri->getUsername());
+        $this->assertNull($uri->getPassword());
+        $this->assertSame('', $uri->getUserInfo());
+        $this->assertSame('host:6379', $uri->getAuthority());
+        $this->assertSame('redis://host:6379', (string)$uri);
+    }
+
     public function testMountUrl1()
     {
         $this->assertEquals(
@@ -598,6 +845,23 @@ class UriTest extends TestCase
 
         $uri2 = Uri::getInstance($uri);
         $this->assertEquals($uriString, $uri2->__toString());
+    }
+
+    public function testFactoryReturnsCalledClass()
+    {
+        $uriString = 'https://user:pass@host/path?query=1#fragment';
+
+        $this->assertSame(Uri::class, get_class(Uri::getInstance($uriString)));
+
+        $subclass = new class extends Uri {
+        };
+        $uri = $subclass::getInstance($uriString);
+        $this->assertInstanceOf($subclass::class, $uri);
+        $this->assertSame($uriString, (string)$uri);
+
+        $fromUri = $subclass::getInstance(new Uri($uriString));
+        $this->assertInstanceOf($subclass::class, $fromUri);
+        $this->assertSame($uriString, (string)$fromUri);
     }
 
     public function testFactory2()
@@ -706,5 +970,376 @@ class UriTest extends TestCase
         $uri = new Uri('https://example.com/path/to?q=foo%20bar#section-42');
         $this->assertTrue($uri->hasQueryKey('q'));
         $this->assertFalse($uri->hasQueryKey('q2'));
+    }
+
+    /**
+     * The host group guards against reading a Windows drive letter as a host. The guard must
+     * not reject a one-character host that carries a port -- "h:9092" is not "C:\\path".
+     */
+    public static function singleCharacterHostProvider(): array
+    {
+        return [
+            ['kafka://h:9092', 'h', 9092, ''],
+            ['kafka://a:9092/path', 'a', 9092, '/path'],
+            ['https://x:8080', 'x', 8080, ''],
+            ['mysql://user:pw@h:3306/db', 'h', 3306, '/db'],
+            ['h:9092', 'h', 9092, ''],
+            // a digit host already worked: the guard only ever looked at [A-Za-z]
+            ['kafka://1:9092', '1', 9092, ''],
+            // and the cases that were never broken must stay that way
+            ['kafka://hh:9092', 'hh', 9092, ''],
+            ['kafka://h', 'h', null, ''],
+            ['kafka://localhost:9092', 'localhost', 9092, ''],
+        ];
+    }
+
+    #[DataProvider('singleCharacterHostProvider')]
+    public function testSingleCharacterHostWithPort(
+        string $uriStr,
+        string $host,
+        ?int $port,
+        string $path
+    ) {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame($host, $uri->getHost());
+        $this->assertSame($port, $uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+    }
+
+    public static function windowsPathProvider(): array
+    {
+        return [
+            ['sqlite://C:\\Windows\\Path\\file.db', 'C:\\Windows\\Path\\file.db'],
+            ['sqlite://C:/Windows/Path/file.db', 'C:/Windows/Path/file.db'],
+            ['C:\\Windows\\Path\\file.db', 'C:\\Windows\\Path\\file.db'],
+            ['C:/Windows/Path/file.db', 'C:/Windows/Path/file.db'],
+            // drive-relative forms: no path separator, so nothing marks them as a path
+            // other than the absence of a port after the colon
+            ['C:foo', 'C:foo'],
+            ['C:', 'C:'],
+        ];
+    }
+
+    /**
+     * A drive letter must never be read as a host, whatever follows it -- unless what follows
+     * is a port, which is the ambiguity documented in testDriveLetterWithDigitsIsReadAsAPort().
+     */
+    #[DataProvider('windowsPathProvider')]
+    public function testWindowsPathIsNotReadAsAHost(string $uriStr, string $path)
+    {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame('', $uri->getHost());
+        $this->assertNull($uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+    }
+
+    /**
+     * Deliberate trade-off: "C:1" is a one-character host with port 1 and a drive-relative
+     * path at the same time, and nothing in the string tells them apart. The host reading
+     * wins, because a DSN is what this library parses.
+     */
+    public function testDriveLetterWithDigitsIsReadAsAPort()
+    {
+        $uri = new Uri('C:1');
+
+        $this->assertSame('C', $uri->getHost());
+        $this->assertSame(1, $uri->getPort());
+        $this->assertSame('', $uri->getPath());
+    }
+
+    public static function ipv6Provider(): array
+    {
+        return [
+            // Input, host, port, path, authority
+            ['kafka://[::1]:9092', '[::1]', 9092, '', '[::1]:9092'],
+            ['kafka://[::1]', '[::1]', null, '', '[::1]'],
+            ['kafka://[2001:db8::1]:9092', '[2001:db8::1]', 9092, '', '[2001:db8::1]:9092'],
+            // RFC 6874 zone identifier
+            ['kafka://[fe80::1%25eth0]:9092', '[fe80::1%25eth0]', 9092, '', '[fe80::1%25eth0]:9092'],
+            // IPv4-mapped
+            ['http://[::ffff:192.0.2.1]/p', '[::ffff:192.0.2.1]', null, '/p', '[::ffff:192.0.2.1]'],
+            ['https://user:pw@[2001:db8::1]:443/p', '[2001:db8::1]', 443, '/p', 'user:pw@[2001:db8::1]:443'],
+        ];
+    }
+
+    /**
+     * RFC3986 section 3.2.2: the authority host is IP-literal / IPv4address / reg-name, and
+     * IP-literal keeps its brackets so the colons inside cannot be read as the port separator.
+     */
+    #[DataProvider('ipv6Provider')]
+    public function testIpv6LiteralIsParsedAsHost(
+        string $uriStr,
+        string $host,
+        ?int $port,
+        string $path,
+        string $authority
+    ) {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame($host, $uri->getHost());
+        $this->assertSame($port, $uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+        $this->assertSame($authority, $uri->getAuthority());
+
+        // The failure this replaces was silent: the literal survived inside the path, so the
+        // round-trip looked correct while every accessor was wrong. Assert both together.
+        $this->assertSame($uriStr, (string)$uri);
+    }
+
+    public static function notAnIpLiteralProvider(): array
+    {
+        return [
+            ['http://[]/p', '[]/p'],
+            ['http://[zzz]/p', '[zzz]/p'],
+            // IPvFuture (RFC3986 section 3.2.2) is deliberately not covered
+            ['http://[v7.foo]/p', '[v7.foo]/p'],
+            ['http://[::1', '[::1'],
+            ['http://::1]/p', '::1]/p'],
+        ];
+    }
+
+    /**
+     * Anything that is not shaped like an IP-literal keeps the previous behaviour: no host,
+     * and the text falls through to the path.
+     */
+    #[DataProvider('notAnIpLiteralProvider')]
+    public function testUnbracketedOrUnrecognisedLiteralIsNotAHost(string $uriStr, string $path)
+    {
+        $uri = new Uri($uriStr);
+
+        $this->assertSame('', $uri->getHost());
+        $this->assertNull($uri->getPort());
+        $this->assertSame($path, $uri->getPath());
+    }
+
+    /**
+     * Deliberate scope: the IP-literal branch accepts the character set of an IPv6 address
+     * rather than validating its structure, exactly as the reg-name branch does not validate
+     * a hostname. Address validation belongs to whatever consumes the host.
+     */
+    public function testIpLiteralIsNotValidated()
+    {
+        $this->assertSame('[:::]', (new Uri('http://[:::]/p'))->getHost());
+        $this->assertSame('[999.999.999.999]', (new Uri('http://[999.999.999.999]/p'))->getHost());
+    }
+
+    public static function queryProvider(): array
+    {
+        return [
+            // Input query, expected getQuery()
+            ['group.id=g1', 'group.id=g1'],                          // dot is unreserved (RFC3986 2.3)
+            ['tag=x&tag=y', 'tag=x&tag=y'],                          // repeated keys are kept, in order
+            ['a[]=1&a[]=2', 'a%5B%5D=1&a%5B%5D=2'],                  // brackets are not pchar, so encoded
+            ['my%20key=v', 'my%20key=v'],                            // encoded key stays encoded
+            ['flag', 'flag'],                                        // no "=" means no value
+            ['a=1&b.c=2', 'a=1&b.c=2'],
+            ['empty=', 'empty='],                                    // "=" with no value is kept
+            ['session.timeout.ms=6000', 'session.timeout.ms=6000'],
+            ['ca=%2Fpath%2Fto%2Fca', 'ca=%2Fpath%2Fto%2Fca'],        // reserved chars stay encoded
+            ['q=foo bar', 'q=foo%20bar'],                            // invalid chars get encoded
+            ['q=abc%3D%41', 'q=abc%3DA'],                            // unreserved chars get decoded
+            ['q=Rio+de+Janeiro', 'q=Rio+de+Janeiro'],                // "+" is kept, never turned into %2B
+            ['q=1%2B1', 'q=1%2B1'],                                  // an encoded "+" stays encoded
+            ['q=a+b%2Bc', 'q=a+b%2Bc'],                              // both forms keep their own meaning
+            ['a+b=1', 'a+b=1'],                                      // "+" in a key is kept too
+        ];
+    }
+
+    #[DataProvider('queryProvider')]
+    public function testQueryIsPreserved(string $query, string $expected)
+    {
+        $this->assertEquals($expected, (new Uri('https://host/path?' . $query))->getQuery());
+    }
+
+    #[DataProvider('queryProvider')]
+    public function testQueryIsPreservedInToString(string $query, string $expected)
+    {
+        $this->assertEquals(
+            'https://host/path?' . $expected,
+            (string)(new Uri('https://host/path?' . $query))
+        );
+    }
+
+    #[DataProvider('queryProvider')]
+    public function testQueryNormalizationIsIdempotent(string $query, string $expected)
+    {
+        $uri = new Uri('https://host/path?' . $query);
+
+        $this->assertEquals($expected, (new Uri((string)$uri))->getQuery());
+    }
+
+    /**
+     * PSR-7: withQuery($query)->getQuery() must return the query it was given.
+     */
+    #[DataProvider('queryProvider')]
+    public function testWithQueryReturnsTheSameQuery(string $query, string $expected)
+    {
+        $uri = (new Uri('https://host/path'))->withQuery($expected);
+
+        $this->assertEquals($expected, $uri->getQuery());
+    }
+
+    public function testGetQueryPartWithDottedKey()
+    {
+        $uri = new Uri('https://host/path?session.timeout.ms=6000&auto.offset.reset=earliest');
+
+        $this->assertEquals('6000', $uri->getQueryPart('session.timeout.ms'));
+        $this->assertEquals('earliest', $uri->getQueryPart('auto.offset.reset'));
+        $this->assertTrue($uri->hasQueryKey('session.timeout.ms'));
+        $this->assertFalse($uri->hasQueryKey('session.timeout.us'));
+    }
+
+    public function testGetQueryPartWithEncodedKey()
+    {
+        $uri = new Uri('https://host/path?my%20key=a%20value');
+
+        $this->assertEquals('a value', $uri->getQueryPart('my key'));
+        $this->assertTrue($uri->hasQueryKey('my key'));
+    }
+
+    /**
+     * The parse_str() index is kept as a fallback, so the mangled key still resolves.
+     */
+    public function testGetQueryPartWithLegacyMangledKey()
+    {
+        $uri = new Uri('https://host/path?group.id=g1');
+
+        $this->assertEquals('g1', $uri->getQueryPart('group_id'));
+    }
+
+    /**
+     * parse_str() turns "a[]" into an array; getQueryPart() must not choke on it.
+     */
+    public function testGetQueryPartWithBracketKeyDoesNotThrow()
+    {
+        $uri = new Uri('https://host/path?a[]=1&a[]=2');
+
+        $this->assertNull($uri->getQueryPart('a'));
+        $this->assertEquals('2', $uri->getQueryPart('a[]'));
+    }
+
+    public function testGetQueryPartWithRepeatedKeyReturnsTheLast()
+    {
+        $uri = new Uri('https://host/path?tag=x&tag=y');
+
+        $this->assertEquals('y', $uri->getQueryPart('tag'));
+    }
+
+    public function testGetQueryPartsReturnsEveryValueInOrder()
+    {
+        $uri = new Uri('https://host/path?tag=x&page=1&tag=y&tag=z');
+
+        $this->assertEquals(['x', 'y', 'z'], $uri->getQueryParts('tag'));
+        $this->assertEquals(['1'], $uri->getQueryParts('page'));
+    }
+
+    public function testGetQueryPartsReturnsAnEmptyArrayWhenTheKeyIsAbsent()
+    {
+        $uri = new Uri('https://host/path?tag=x');
+
+        $this->assertEquals([], $uri->getQueryParts('missing'));
+    }
+
+    public function testGetQueryPartsDecodesTheValues()
+    {
+        $uri = new Uri('https://host/path?my%20key=a%20value&my%20key=%2Fpath');
+
+        $this->assertEquals(['a value', '/path'], $uri->getQueryParts('my key'));
+    }
+
+    public function testGetQueryPartsWithBracketKey()
+    {
+        $uri = new Uri('https://host/path?a[]=1&a[]=2');
+
+        $this->assertEquals(['1', '2'], $uri->getQueryParts('a[]'));
+    }
+
+    public function testGetQueryPartsReturnsAnEmptyStringForAValuelessKey()
+    {
+        $uri = new Uri('https://host/path?flag');
+
+        $this->assertSame([''], $uri->getQueryParts('flag'));
+    }
+
+    /**
+     * The mangled-name fallback is deprecated, so the new method must not honour it.
+     */
+    public function testGetQueryPartsIgnoresTheLegacyMangledKey()
+    {
+        $uri = new Uri('https://host/path?group.id=g1');
+
+        $this->assertEquals(['g1'], $uri->getQueryParts('group.id'));
+        $this->assertEquals([], $uri->getQueryParts('group_id'));
+    }
+
+    public function testGetQueryPartsAfterWithQueryKeyValue()
+    {
+        $uri = (new Uri('https://host/path?tag=x&tag=y'))->withQueryKeyValue('tag', 'z');
+
+        $this->assertEquals(['z'], $uri->getQueryParts('tag'));
+    }
+
+    public function testWithQueryKeyValueKeepsTheOtherPairsUntouched()
+    {
+        $uri = (new Uri('https://host/path?group.id=g1&flag&tag=x'))
+            ->withQueryKeyValue('client.id', 'c1');
+
+        $this->assertEquals('group.id=g1&flag&tag=x&client.id=c1', $uri->getQuery());
+        $this->assertEquals('c1', $uri->getQueryPart('client.id'));
+    }
+
+    public function testWithQueryKeyValueReplacesInPlaceAndCollapsesRepeatedKeys()
+    {
+        $uri = (new Uri('https://host/path?tag=x&other=1&tag=y'))
+            ->withQueryKeyValue('tag', 'z');
+
+        $this->assertEquals('tag=z&other=1', $uri->getQuery());
+        $this->assertEquals('z', $uri->getQueryPart('tag'));
+    }
+
+    public function testWithQueryKeyValueEncodesTheKey()
+    {
+        $uri = (new Uri('https://host/path'))->withQueryKeyValue('a key', 'a value');
+
+        $this->assertEquals('a%20key=a%20value', $uri->getQuery());
+        $this->assertEquals('a value', $uri->getQueryPart('a key'));
+    }
+
+    /**
+     * A pre-signed URL only survives if order, repetition and encoding are left alone.
+     */
+    public function testPreSignedUrlRoundTrip()
+    {
+        $url = 'https://bucket.s3.amazonaws.com/key.txt'
+            . '?X-Amz-Algorithm=AWS4-HMAC-SHA256'
+            . '&X-Amz-Credential=AKIA%2F20260918%2Fus-east-1%2Fs3%2Faws4_request'
+            . '&X-Amz-Date=20260918T000000Z'
+            . '&X-Amz-Expires=900'
+            . '&X-Amz-SignedHeaders=host'
+            . '&X-Amz-Signature=abc123';
+
+        $this->assertEquals($url, (string)(new Uri($url)));
+    }
+
+    public static function toStringPsr7Provider(): array
+    {
+        return [
+            'rootless path with an authority' => [(new Uri('https://host'))->withPath('foo'), 'https://host/foo'],
+            'rootless path with a scheme-less authority' => [(new Uri('h:9092'))->withPath('foo'), 'h:9092/foo'],
+            'rootless path without an authority' => [(new Uri(''))->withPath('foo'), 'foo'],
+            'query "0"' => [(new Uri('https://h/p'))->withQuery('0'), 'https://h/p?0'],
+            'fragment "0"' => [(new Uri('https://h/p'))->withFragment('0'), 'https://h/p#0'],
+            'parsed query and fragment "0"' => [new Uri('https://h/p?0#0'), 'https://h/p?0#0'],
+            'scheme without a host' => [new Uri('sqlite:///tmp/db'), 'sqlite:///tmp/db'],
+            'scheme-less host and port' => [new Uri('h:9092'), 'h:9092'],
+        ];
+    }
+
+    #[DataProvider('toStringPsr7Provider')]
+    public function testToStringPsr7(Uri $uri, string $expected): void
+    {
+        $this->assertSame($expected, (string)$uri);
     }
 }

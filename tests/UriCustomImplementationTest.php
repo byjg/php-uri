@@ -1,6 +1,6 @@
 <?php
 
-namespace Test;
+namespace Tests;
 
 use ByJG\Util\Uri;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +22,9 @@ class UriCustomImplementationTest extends TestCase
         $this->assertEmpty($uri->getQueryPart("other"));
         $this->assertTrue($uri->hasQueryKey("query"));
         $this->assertFalse($uri->hasQueryKey("other"));
+
+        $this->assertEquals(["1"], $uri->getQueryParts("query"));
+        $this->assertEquals([], $uri->getQueryParts("other"));
 
         $uri = $uri->withQueryKeyValue("other", "value");
         $this->assertEquals("1", $uri->getQueryPart("query"));

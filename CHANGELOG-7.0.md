@@ -1,0 +1,265 @@
+# Changelog - Version 7.0
+
+> **Status: in development.** This document tracks changes landing on the `7.0` branch.
+> Nothing here is released yet, and the contents may still change.
+
+## Bug Fixes
+
+- **`__toString()` follows PSR-7 for rootless paths, and keeps a query or fragment `"0"`.**
+
+  | Code | Before | Now |
+  |---|---|---|
+  | `(new Uri('https://host'))->withPath('foo')` | `https://hostfoo` | `https://host/foo` |
+  | `(new Uri('https://h/p'))->withQuery('0')` | `https://h/p0` | `https://h/p?0` |
+  | `(new Uri('https://h/p'))->withFragment('0')` | `https://h/p0` | `https://h/p#0` |
+
+  Two PSR-7 recommendations are still not followed on purpose, for connection strings: the standard port is kept
+  (`https://host:443`), and a URI without a scheme is written without `//` (`h:9092`). See "PSR-7 differences" in
+  the README.
+
+- **The query string is no longer corrupted on output** ([#23](https://github.com/byjg/php-uri/issues/23)).
+
+  The query used to be stored only as a `parse_str()` array and rebuilt with
+  `http_build_query()`, so no query string survived a round-trip:
+
+  | Input | Before | Now |
+  |---|---|---|
+  | `?group.id=g1` | `?group_id=g1` | `?group.id=g1` |
+  | `?tag=x&tag=y` | `?tag=y` | `?tag=x&tag=y` |
+  | `?a[]=1&a[]=2` | `?a%5B0%5D=1&a%5B1%5D=2` | `?a%5B%5D=1&a%5B%5D=2` |
+  | `?my%20key=v` | `?my_key=v` | `?my%20key=v` |
+  | `?flag` | `?flag=` | `?flag` |
+  | `?q=a+b` | `?q=a%20b` | `?q=a+b` |
+
+  `parse_str()` is a form-data decoder that produces PHP variable names, not a URI query
+  parser — it rewrites `.` and space to `_`, keeps only the last of a repeated key, and
+  turns `a[]` into an array (see [php/php-src#8639](https://github.com/php/php-src/issues/8639),
+  which is closed as stale and needs an RFC, so this will not change upstream).
+
+  The query is now kept as an ordered list of raw key/value pairs and only its *encoding*
+  is normalized on output, which keeps the library RFC3986-compliant and satisfies the PSR-7
+  requirement that `withQuery($query)->getQuery()` returns `$query`. As a side effect,
+  pre-signed URLs (S3, CloudFront) now survive a round-trip with their signature intact.
+
+- `getQueryPart()` now resolves keys exactly as they were written, so
+  `getQueryPart('group.id')` returns the value instead of `null`. Its signature is unchanged
+  (`?string`, the last value when a key repeats), so no existing caller needs to be touched.
+
+- `getQueryPart()` no longer throws a `TypeError` for a bracket key such as `?a[]=1`
+  (`parse_str()` produced an array where a `?string` was declared).
+
+- **IPv6 literals in the authority now parse** ([#26](https://github.com/byjg/php-uri/issues/26)).
+
+  `kafka://[::1]:9092` returned an empty host, a null port and an empty authority, and
+  swallowed the whole authority into the path:
+
+  | Input | Before (host / port / path) | Now |
+  |---|---|---|
+  | `kafka://[::1]:9092` | `''` / `null` / `[::1]:9092` | `[::1]` / `9092` / `''` |
+  | `kafka://[fe80::1%25eth0]:9092` | `''` / `null` / `[fe80::1%25eth0]:9092` | `[fe80::1%25eth0]` / `9092` / `''` |
+  | `https://user:pw@[2001:db8::1]:443/p` | `''` / `null` / `[2001:db8::1]:443/p` | `[2001:db8::1]` / `443` / `/p` |
+
+  The host pattern described only a dot-separated registered name, which cannot contain `[`,
+  `]` or `:`, so RFC 3986 section 3.2.2's `IP-literal` had nothing to match. An `IP-literal`
+  branch is now tried ahead of the registered-name branch, including RFC 6874 zone
+  identifiers (`%25eth0`).
+
+  **This failure was silent**: the literal survived verbatim inside the path, so
+  `__toString()` and anything logging the URI looked correct while every component accessor
+  was wrong -- a caller reading `getHost()`/`getPort()` got `''` and `null` and could connect
+  to a default port with no error raised.
+
+  `getHost()` returns the literal with its brackets, so `getAuthority()` reassembles on its
+  own. The branch accepts the character set of an IPv6 address rather than validating its
+  structure, matching the registered-name branch, which does not validate a hostname either;
+  `IPvFuture` is not covered.
+
+- **A one-character hostname with a port now parses** ([#25](https://github.com/byjg/php-uri/issues/25)).
+
+  `kafka://h:9092` returned an empty host and a null port, and swallowed the whole authority
+  into the path. Two or more characters always worked, so only the one-character case failed:
+
+  | Input | Before | Now |
+  |---|---|---|
+  | `kafka://h:9092` | host `''`, port `null`, path `h:9092` | host `h`, port `9092` |
+  | `kafka://a:9092/path` | host `''`, port `null`, path `a:9092/path` | host `a`, port `9092`, path `/path` |
+  | `mysql://user:pw@h:3306/db` | host `''`, port `null`, path `h:3306/db` | host `h`, port `3306`, path `/db` |
+
+  The host pattern guards against reading a Windows drive letter as a host, and the guard
+  `(?![A-Za-z]:)` rejected *any* letter before a colon -- a one-character host looked exactly
+  like `C:`. The guard is now `(?![A-Za-z]:(?!\d))`: a letter and a colon are only a drive
+  letter when what follows is **not** a port. Windows paths, including the drive-relative
+  `C:foo` and `C:`, are unaffected.
+
+  Deliberate trade-off: `C:1` is now read as host `C` on port 1 rather than as a
+  drive-relative path. The two readings are indistinguishable; write `C:\1` or `C:/1` for the
+  path. Documented in `docs/examples.md`.
+
+- **A password-only userinfo (empty user) now parses.**
+
+  RFC 3986 section 3.2.1 allows an empty user (`userinfo = *( unreserved / pct-encoded /
+  sub-delims / ":" )`), and it is the usual form for password-only auth such as Redis
+  `AUTH`. The userinfo pattern required at least one character before the `:`, so the
+  whole `:password` was read as the username:
+
+  | Input | Before (user / password) | Now |
+  |---|---|---|
+  | `redis://:mypassword@host:6379` | `:mypassword` / `''` | `''` / `mypassword` |
+  | `redis://:p%40ss@host` | `:p%40ss` / `''` | `''` / `p@ss` |
+
+  `getUserInfo()` and `__toString()` were already rendering `:mypassword`, so the URI looked
+  right while `getPassword()` was empty. A URI without a userinfo returns `null`
+  for both parts (see Breaking Changes).
+
+- **The username is now decoded and encoded like the password.**
+
+  The parser decoded the password but stored the username as written, and `getUserInfo()`
+  wrote the username back raw. An encoded username was never decoded, and a raw `:` or `@` in
+  the username was written back unencoded, so the string form could not be parsed back reliably:
+
+  | Input | Before (`getUsername()` / string form) | Now |
+  |---|---|---|
+  | `mongodb://us%40er:p%40ss@host` | `us%40er` / `us%40er:p%40ss@host` | `us@er` / `us%40er:p%40ss@host` |
+  | `https://email@host.com:pw@host` | `email@host.com` / `email@host.com:pw@host` | `email@host.com` / `email%40host.com:pw@host` |
+  | `withUserInfo('us:er', 'pw')` | `us:er` / `us:er:pw@host` (re-parses as user `us`) | `us:er` / `us%3Aer:pw@host` |
+
+  RFC 3986 section 3.2.1 / 2.1: the userinfo component is percent-encoded and the user and
+  password values are the decoded octets. `getUsername()`/`getPassword()` return the decoded
+  values and `getUserInfo()`, `getAuthority()` and `__toString()` encode each one with
+  `rawurlencode()`. A raw username is still accepted on input; a `%` that is not a valid
+  escape (e.g. `ro%&ot`) is kept as a literal `%`.
+
+- **A parsed scheme is now lowercased**, as `withScheme()` already did and PSR-7 requires
+  (`getScheme()` MUST return a lowercase scheme). `new Uri('HTTP://example.com')` returned
+  `getScheme() === 'HTTP'` and wrote `HTTP://` back in `__toString()`; it now returns `'http'`.
+  The host is left as written.
+
+- **A password of `"0"`, or an empty one, is no longer dropped from the userinfo.**
+  `getUserInfo()` tested the password with `!empty()`, which is false for `"0"`:
+  `withUserInfo('user', '0')` was written as `user@host`, losing the password. The `:password`
+  part is now written whenever the password is not `null`, so `"0"` gives `user:0` and an
+  empty password gives `user:`. `user@host` (no password) still has no trailing `:`. The
+  parser now reads `user:@host` as user `user` with an empty password; it used to read the
+  whole `user:` as the username. A username of `"0"` with no password lost its `@`
+  (`https://0@host` was written as `https://0host`) and now keeps it.
+
+- **`withUserInfo('')` now removes the user information**, as PSR-7 requires, instead of
+  storing an empty username (and keeping the password, if one was given). See Breaking Changes.
+
+## New Features
+
+- `CustomUriInterface::getQueryParts(string $key): array` returns **every** value of a key,
+  in order — the only way to read a repeated key, now that `?tag=x&tag=y` survives:
+
+  ```php
+  $uri = Uri::getInstance('https://example.com?tag=x&page=1&tag=y');
+
+  $uri->getQueryParts('tag');     // ["x", "y"]
+  $uri->getQueryParts('page');    // ["1"]
+  $uri->getQueryParts('missing'); // []
+  ```
+
+  `getQueryPart()` is left alone and still returns `?string`, so the ~28 call sites across
+  `php-anydataset-db`, `php-rabbitmq-client`, `php-migration` and `php-mailwrapper` — all of
+  which read single-valued DSN options — keep working untouched.
+
+- `Uri::getInstance()` now returns `static` instead of `UriInterface`, so callers get the
+  concrete type without narrowing it, and a subclass gets an instance of itself:
+
+  ```php
+  $uri = Uri::getInstance('https://example.com');   // Uri, not UriInterface
+  $uri = MyUri::getInstance('https://example.com'); // MyUri
+  ```
+
+## Deprecations
+
+- **The `parse_str()` mangled-name fallback in `getQueryPart()` and `hasQueryKey()` is
+  deprecated and will be removed in 8.0.** Now that keys resolve as written,
+  `getQueryPart('group_id')` for a `?group.id=1` query is only still supported so that code
+  written against the old broken behaviour keeps running. Ask for the real key instead.
+  `getQueryParts()` never consults this index.
+
+  No runtime deprecation is emitted; this is a documentation-only notice.
+
+## Breaking Changes
+
+- None for well-formed input; `getQuery()` and `__toString()` now return the query the way
+  it was given, so any code asserting on the mangled output above must be updated.
+- `getQueryPart()` and `getQueryParts()` decode values as RFC3986, where `+` is a literal
+  plus sign: `?q=a+b` now returns `"a+b"`, while 6.x (`parse_str()`) returned `"a b"`. A
+  space should be sent as `%20`; `withQueryKeyValue()` already encodes it that way.
+- `Uri::getInstance()` is declared `: static`. A subclass that overrides it with a
+  `: UriInterface` return type must narrow it to `: static`.
+- `CustomUriInterface` declares the new `getQueryParts(string $key): array`. A class that
+  implements the interface directly, instead of extending `Uri`, must add it.
+- A URI such as `redis://:secret@host` now returns `getUsername() === ''` and
+  `getPassword() === 'secret'`. Code that worked around the old bug by stripping the leading
+  `:` from `getUsername()` must read `getPassword()` instead.
+
+- `getUsername()` and `getPassword()` now return **`null` when the part is absent**, and `''`
+  only when it is present but empty:
+
+  | Input | Before (user / password) | Now |
+  |---|---|---|
+  | `https://host` | `''` / `''` | `null` / `null` |
+  | `https://user@host` | `'user'` / `''` | `'user'` / `null` |
+  | `redis://:pw@host` | `''` / `'pw'` | `''` / `'pw'` |
+  | `https://user:@host` | `'user:'` / `''` | `'user'` / `''` |
+
+  This is what `withUserInfo($user, $password = null)` already stored and what a URI built with
+  `new Uri()` already returned; only the parser returned `''` for a missing part. Code that
+  compares either value with `''` (`=== ''`, `!== ''`) to detect a missing user or password
+  must compare with `null`, or use `empty()` / `?? ''`. Passing the value to a `string`
+  parameter under `strict_types` now needs `?? ''`.
+- `getUsername()` now returns the **decoded** username: `us%40er` in the URI returns `us@er`.
+  Code that called `rawurldecode()` on it still works for any username without a literal `%`
+  (decoding is a no-op on an already-decoded value), but should drop the call.
+- `getUserInfo()`, `getAuthority()` and `__toString()` now **percent-encode the username**,
+  like the password already was: `https://email@host.com:pw@host` is written as
+  `https://email%40host.com:pw@host`. Every character outside `A-Z a-z 0-9 - . _ ~` is
+  encoded, sub-delims (`!$&'()*+,;=`) included. Code comparing the string form of a URI with
+  special characters in the username, or passing `getUserInfo()` straight to a consumer that
+  does not decode it (e.g. `CURLOPT_USERPWD`), must be updated.
+- A scheme written in upper or mixed case is now lowercased by the parser:
+  `getScheme()` and `__toString()` return `http` for `HTTP://...`. Code comparing the
+  scheme case-sensitively against an uppercase value must compare against lowercase.
+- `withUserInfo('', $password)` now **removes the user information**, as PSR-7 requires ("an
+  empty string for the user is equivalent to removing user information"): `getUsername()` and
+  `getPassword()` return `null`, `getUserInfo()` returns `''` and no `@` is written. Before,
+  `withUserInfo('')` set the username to `''`, and `withUserInfo('', 'pw')` kept the password
+  and wrote `:pw@host`. A password-only userinfo can still be parsed
+  (`new Uri('redis://:pw@host')` returns `''` / `'pw'`), but can no longer be built with
+  `withUserInfo()`.
+- `withUserInfo($user, $password)` expects a decoded user; an already-encoded user is encoded
+  again (`us%40er` becomes `us%2540er`), the same rule the password already followed.
+
+## Requirements
+
+- PHP 8.3, 8.4, 8.5 and 8.6 are now supported: `"php": ">=8.3 <8.7"`.
+  The previous `<8.6` upper bound excluded PHP 8.6, since `<8.6` is exclusive.
+
+## Toolchain
+
+- PHPUnit updated to `^12.5`.
+- Psalm is installed as `psalm/phar` (`^6.16`) instead of `vimeo/psalm`.
+
+  `vimeo/psalm` lists the PHP versions it supports and no published release includes
+  8.6, so as a dev dependency it made `composer install` fail on the 8.6 build job
+  before any test ran. `psalm/phar` requires only `php ^8.2` and bundles its own
+  dependencies, so it installs on every PHP version in the matrix and cannot conflict
+  with the project's. Psalm itself still refuses to *run* on 8.6, which is why the
+  Psalm job uses 8.5. `composer psalm` runs it.
+
+  PHPUnit 13 is deliberately **not** used. It requires PHP `>=8.4.1`, which would
+  break the 8.3 floor.
+
+## Continuous Integration
+
+- The build matrix now includes PHP 8.6.
+- The Psalm job now runs on PHP 8.5. Psalm declares
+  `~8.1.31 || ~8.2.27 || ~8.3.16 || ~8.4.3 || ~8.5.0` and therefore does not run on
+  PHP 8.6.
+
+## Housekeeping
+
+- `phpunit.xml.dist` renamed to `phpunit.xml`.

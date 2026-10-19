@@ -9,18 +9,30 @@ A PHP implementation of PSR-7 UriInterface with additional utility methods.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%23ea4aaa?logo=githubsponsors&logoColor=white&labelColor=0d1117)](https://github.com/sponsors/byjg)
 [![Build Status](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml)
-[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](http://opensource.byjg.com)
+[![Opensource ByJG](https://img.shields.io/badge/opensource-byjg-success.svg)](https://opensource.byjg.com)
+[![Install MCP Server](https://img.shields.io/badge/Install-MCP_Server-8A2BE2?logo=modelcontextprotocol&logoColor=white)](https://opensource.byjg.com/docs/ai/mcpserver-byjg-docs/)
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-uri/)
 [![GitHub license](https://img.shields.io/github/license/byjg/php-uri.svg)](https://opensource.byjg.com/license/)
-[![GitHub release](https://img.shields.io/github/release/byjg/php-uri.svg)](https://github.com/byjg/uri/releases/)
+[![GitHub release](https://img.shields.io/github/release/byjg/php-uri.svg)](https://github.com/byjg/php-uri/releases/)
 
 ## Features
 
-* Fully compliant with [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php)
+* Implements [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php), with two deliberate
+  differences for connection strings (see [PSR-7 differences](#psr-7-differences))
 * Includes additional utility methods via CustomUriInterface
 * Supports RFC3986 URI specification
 * Type-safe implementation with PHP 8 attributes and strict typing
 * Immutable class design pattern
+
+## PSR-7 differences
+
+The URI is also used for connection strings (`mysql://host:3306/db`, `h:9092`), so two PSR-7 recommendations are not followed:
+
+* **The standard port is kept.** `https://host:443` keeps `443` in `getPort()`, `getAuthority()` and the string (PSR-7
+  SHOULD return null and leave it out).
+* **A URI without a scheme is written without `//`.** `new Uri('h:9092')` is read as host `h` and port `9092` and
+  written back as `h:9092`, not `//h:9092`. A URI with a scheme always has `//` after it, even without a host
+  (`sqlite:///tmp/db`).
 
 ## URI Encoding Behavior
 
@@ -40,12 +52,17 @@ print((string)$uri); // Will print "https://user:pa%26@host"
 // Using withUserInfo with unencoded password
 $uri = \ByJG\Util\Uri::getInstance("https://host")
     ->withUserInfo("user", "pa&");
-print((string)$uri); // Will print "https://user:pa&@host"
+print((string)$uri); // Will print "https://user:pa%26@host"
 
 // Using withUserInfo with already encoded password
 $uri = \ByJG\Util\Uri::getInstance("https://host")
     ->withUserInfo("user", "pa%26");
 print((string)$uri); // Will print "https://user:pa%2526@host"
+
+// The username is decoded by getUsername() and encoded in the string form, like the password
+$uri = \ByJG\Util\Uri::getInstance("https://email@host.com:pass@host");
+print($uri->getUsername()); // Will print "email@host.com"
+print((string)$uri); // Will print "https://email%40host.com:pass@host"
 ```
 
 ## Additional Methods
@@ -54,9 +71,10 @@ This implementation extends PSR-7 UriInterface with the following additional met
 
 | Method                                                                         | Description                           |
 |--------------------------------------------------------------------------------|---------------------------------------|
-| `getUsername(): ?string`                                                       | Get the username component of the URI |
-| `getPassword(): ?string`                                                       | Get the password component of the URI |
+| `getUsername(): ?string`                                                       | Get the decoded username of the URI   |
+| `getPassword(): ?string`                                                       | Get the decoded password of the URI   |
 | `getQueryPart(string $key): ?string`                                           | Get a specific query parameter by key |
+| `getQueryParts(string $key): array`                                            | Get every value of a query parameter  |
 | `withQueryKeyValue(string $key, string $value, bool $isEncoded = false): self` | Add or update a query parameter       |
 | `hasQueryKey(string $key): bool`                                               | Check if a query parameter exists     |
 
@@ -81,23 +99,16 @@ $uri2 = Uri::getInstance($uri);
 - [Factory Methods](docs/factory-methods.md)
 - [Examples](docs/examples.md)
 
-## Install
+## Installation
 
 ```bash
 composer require "byjg/uri"
 ```
 
-## Unit tests
+## Running Tests
 
 ```bash
 vendor/bin/phpunit
-```
-
-## Dependencies
-
-```mermaid
-flowchart TD
-    byjg/uri --> psr/http-message
 ```
 
 ----
