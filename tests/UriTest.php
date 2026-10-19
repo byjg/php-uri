@@ -664,6 +664,40 @@ class UriTest extends TestCase
         $this->assertEquals($uriStr, $uri->__toString());
     }
 
+    public static function userInfoProvider(): array
+    {
+        // uri, username, password, userinfo
+        return [
+            'user and password' => ['redis://user:pass@host:6379', 'user', 'pass', 'user:pass'],
+            'user only' => ['redis://user@host:6379', 'user', '', 'user'],
+            'password only' => ['redis://:mypassword@host:6379', '', 'mypassword', ':mypassword'],
+            'password only, encoded' => ['redis://:p%40ss%3Aw@host:6379', '', 'p@ss:w', ':p%40ss%3Aw'],
+            'no userinfo' => ['redis://host:6379', '', '', ''],
+        ];
+    }
+
+    #[DataProvider('userInfoProvider')]
+    public function testParseUserInfoParts(string $uriStr, string $username, string $password, string $userInfo)
+    {
+        $uri = new Uri($uriStr);
+        $this->assertSame($username, $uri->getUsername());
+        $this->assertSame($password, $uri->getPassword());
+        $this->assertSame($userInfo, $uri->getUserInfo());
+        $this->assertSame('host', $uri->getHost());
+        $this->assertSame(6379, $uri->getPort());
+        $this->assertSame($uriStr, (string)$uri);
+    }
+
+    public function testWithUserInfoPasswordOnly()
+    {
+        $uri = Uri::getInstance('redis://host:6379')->withUserInfo('', 'p@ss');
+        $this->assertSame('redis://:p%40ss@host:6379', (string)$uri);
+
+        $parsed = new Uri((string)$uri);
+        $this->assertSame('', $parsed->getUsername());
+        $this->assertSame('p@ss', $parsed->getPassword());
+    }
+
     public function testMountUrl1()
     {
         $this->assertEquals(

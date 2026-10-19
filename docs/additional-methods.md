@@ -16,14 +16,19 @@ Get the username component separately from the password.
 public function getUsername(): ?string
 ```
 
-**Returns**: The username, or `null` if not set.
+**Returns**: The username. A parsed URI without a username returns an empty string;
+`null` is returned only when no URI was parsed and `withUserInfo()` was never called.
 
 ```php
 $uri = Uri::getInstance("https://john:secret@example.com");
 echo $uri->getUsername(); // "john"
 
 $uri = Uri::getInstance("https://example.com");
-var_dump($uri->getUsername()); // NULL
+var_dump($uri->getUsername()); // string(0) ""
+
+// Password-only userinfo (empty user, RFC 3986 section 3.2.1), e.g. Redis AUTH
+$uri = Uri::getInstance("redis://:mypassword@host:6379");
+var_dump($uri->getUsername()); // string(0) ""
 ```
 
 ### getPassword()
@@ -34,14 +39,18 @@ Get the password component of the URI.
 public function getPassword(): ?string
 ```
 
-**Returns**: The password, or `null` if not set.
+**Returns**: The decoded password. A parsed URI without a password returns an empty string;
+`null` is returned only when no URI was parsed and no password was given to `withUserInfo()`.
 
 ```php
 $uri = Uri::getInstance("https://john:secret@example.com");
 echo $uri->getPassword(); // "secret"
 
 $uri = Uri::getInstance("https://john@example.com");
-var_dump($uri->getPassword()); // NULL
+var_dump($uri->getPassword()); // string(0) ""
+
+$uri = Uri::getInstance("redis://:mypassword@host:6379");
+echo $uri->getPassword(); // "mypassword"
 ```
 
 ## Query Parameter Manipulation

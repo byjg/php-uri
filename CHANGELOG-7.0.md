@@ -83,6 +83,23 @@
   drive-relative path. The two readings are indistinguishable; write `C:\1` or `C:/1` for the
   path. Documented in `docs/examples.md`.
 
+- **A password-only userinfo (empty user) now parses.**
+
+  RFC 3986 section 3.2.1 allows an empty user (`userinfo = *( unreserved / pct-encoded /
+  sub-delims / ":" )`), and it is the usual form for password-only auth such as Redis
+  `AUTH`. The userinfo pattern required at least one character before the `:`, so the
+  whole `:password` was read as the username:
+
+  | Input | Before (user / password) | Now |
+  |---|---|---|
+  | `redis://:mypassword@host:6379` | `:mypassword` / `''` | `''` / `mypassword` |
+  | `redis://:p%40ss@host` | `:p%40ss` / `''` | `''` / `p@ss` |
+
+  `getUserInfo()` and `__toString()` were already rendering `:mypassword`, so the URI looked
+  right while `getPassword()` was empty. `withUserInfo('', 'pass')` serializes to
+  `:pass@host` and now parses back to the same parts. No-user input still returns `''` for
+  `getUsername()`, as before.
+
 ## New Features
 
 - `CustomUriInterface::getQueryParts(string $key): array` returns **every** value of a key,
@@ -129,6 +146,9 @@
   `: UriInterface` return type must narrow it to `: static`.
 - `CustomUriInterface` declares the new `getQueryParts(string $key): array`. A class that
   implements the interface directly, instead of extending `Uri`, must add it.
+- A URI such as `redis://:secret@host` now returns `getUsername() === ''` and
+  `getPassword() === 'secret'`. Code that worked around the old bug by stripping the leading
+  `:` from `getUsername()` must read `getPassword()` instead.
 
 ## Requirements
 

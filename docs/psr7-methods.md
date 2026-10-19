@@ -117,6 +117,10 @@ echo $uri->getUserInfo(); // "user:pa%26ss"
 $uri = Uri::getInstance("https://user@example.com");
 echo $uri->getUserInfo(); // "user"
 
+// Password only (empty user), e.g. Redis AUTH
+$uri = Uri::getInstance("redis://:mypassword@host:6379");
+echo $uri->getUserInfo(); // ":mypassword"
+
 $uri = Uri::getInstance("https://example.com");
 echo $uri->getUserInfo(); // "" (empty string)
 ```
@@ -133,6 +137,11 @@ public function withUserInfo(string $user, ?string $password = null): UriInterfa
 $uri = Uri::getInstance("https://example.com")
     ->withUserInfo("john", "secret");
 echo (string)$uri; // "https://john:secret@example.com"
+
+// An empty user produces the password-only form
+$uri = Uri::getInstance("redis://host:6379")
+    ->withUserInfo("", "mypassword");
+echo (string)$uri; // "redis://:mypassword@host:6379"
 ```
 
 :::warning
