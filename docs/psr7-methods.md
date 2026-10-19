@@ -108,7 +108,9 @@ Retrieve the user information component of the URI.
 public function getUserInfo(): string
 ```
 
-**Returns**: User information in "username[:password]" format. The username and the password are
+**Returns**: User information in "username[:password]" format. The `:password` part is written
+whenever there is a password, even `"0"` or an empty one (`user:`), and left out when the
+password is `null`. The username and the password are
 each percent-encoded with `rawurlencode()`, so a `:` or `@` inside them cannot be read as a
 delimiter (RFC 3986 section 3.2.1). Use `getUsername()` and `getPassword()` for the decoded values.
 
@@ -118,6 +120,9 @@ echo $uri->getUserInfo(); // "user:pa%26ss"
 
 $uri = Uri::getInstance("https://user@example.com");
 echo $uri->getUserInfo(); // "user"
+
+$uri = Uri::getInstance("https://user:0@example.com");
+echo $uri->getUserInfo(); // "user:0"
 
 $uri = Uri::getInstance("https://email@host.com:pass@example.com");
 echo $uri->getUserInfo(); // "email%40host.com:pass"
@@ -143,10 +148,16 @@ $uri = Uri::getInstance("https://example.com")
     ->withUserInfo("john", "secret");
 echo (string)$uri; // "https://john:secret@example.com"
 
-// An empty user produces the password-only form
-$uri = Uri::getInstance("redis://host:6379")
+// A null password writes no ":"; an empty password writes "user:"
+echo (string)Uri::getInstance("https://example.com")->withUserInfo("john");     // "https://john@example.com"
+echo (string)Uri::getInstance("https://example.com")->withUserInfo("john", ""); // "https://john:@example.com"
+
+// An empty user removes the user information (PSR-7), the password included
+$uri = Uri::getInstance("redis://user:pw@host:6379")
     ->withUserInfo("", "mypassword");
-echo (string)$uri; // "redis://:mypassword@host:6379"
+echo (string)$uri;           // "redis://host:6379"
+var_dump($uri->getUsername()); // NULL
+var_dump($uri->getPassword()); // NULL
 
 // The user and the password are encoded on output
 $uri = Uri::getInstance("https://example.com")

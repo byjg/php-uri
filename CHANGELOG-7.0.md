@@ -96,9 +96,8 @@
   | `redis://:p%40ss@host` | `:p%40ss` / `''` | `''` / `p@ss` |
 
   `getUserInfo()` and `__toString()` were already rendering `:mypassword`, so the URI looked
-  right while `getPassword()` was empty. `withUserInfo('', 'pass')` serializes to
-  `:pass@host` and now parses back to the same parts. No-user input still returns `''` for
-  `getUsername()`, as before.
+  right while `getPassword()` was empty. A URI without a userinfo returns `null`
+  for both parts (see Breaking Changes).
 
 - **The username is now decoded and encoded like the password.**
 
@@ -117,6 +116,23 @@
   values and `getUserInfo()`, `getAuthority()` and `__toString()` encode each one with
   `rawurlencode()`. A raw username is still accepted on input; a `%` that is not a valid
   escape (e.g. `ro%&ot`) is kept as a literal `%`.
+
+- **A parsed scheme is now lowercased**, as `withScheme()` already did and PSR-7 requires
+  (`getScheme()` MUST return a lowercase scheme). `new Uri('HTTP://example.com')` returned
+  `getScheme() === 'HTTP'` and wrote `HTTP://` back in `__toString()`; it now returns `'http'`.
+  The host is left as written.
+
+- **A password of `"0"`, or an empty one, is no longer dropped from the userinfo.**
+  `getUserInfo()` tested the password with `!empty()`, which is false for `"0"`:
+  `withUserInfo('user', '0')` was written as `user@host`, losing the password. The `:password`
+  part is now written whenever the password is not `null`, so `"0"` gives `user:0` and an
+  empty password gives `user:`. `user@host` (no password) still has no trailing `:`. The
+  parser now reads `user:@host` as user `user` with an empty password; it used to read the
+  whole `user:` as the username. A username of `"0"` with no password lost its `@`
+  (`https://0@host` was written as `https://0host`) and now keeps it.
+
+- **`withUserInfo('')` now removes the user information**, as PSR-7 requires, instead of
+  storing an empty username (and keeping the password, if one was given). See Breaking Changes.
 
 ## New Features
 
@@ -168,6 +184,21 @@
   `getPassword() === 'secret'`. Code that worked around the old bug by stripping the leading
   `:` from `getUsername()` must read `getPassword()` instead.
 
+- `getUsername()` and `getPassword()` now return **`null` when the part is absent**, and `''`
+  only when it is present but empty:
+
+  | Input | Before (user / password) | Now |
+  |---|---|---|
+  | `https://host` | `''` / `''` | `null` / `null` |
+  | `https://user@host` | `'user'` / `''` | `'user'` / `null` |
+  | `redis://:pw@host` | `''` / `'pw'` | `''` / `'pw'` |
+  | `https://user:@host` | `'user:'` / `''` | `'user'` / `''` |
+
+  This is what `withUserInfo($user, $password = null)` already stored and what a URI built with
+  `new Uri()` already returned; only the parser returned `''` for a missing part. Code that
+  compares either value with `''` (`=== ''`, `!== ''`) to detect a missing user or password
+  must compare with `null`, or use `empty()` / `?? ''`. Passing the value to a `string`
+  parameter under `strict_types` now needs `?? ''`.
 - `getUsername()` now returns the **decoded** username: `us%40er` in the URI returns `us@er`.
   Code that called `rawurldecode()` on it still works for any username without a literal `%`
   (decoding is a no-op on an already-decoded value), but should drop the call.
@@ -177,6 +208,16 @@
   encoded, sub-delims (`!$&'()*+,;=`) included. Code comparing the string form of a URI with
   special characters in the username, or passing `getUserInfo()` straight to a consumer that
   does not decode it (e.g. `CURLOPT_USERPWD`), must be updated.
+- A scheme written in upper or mixed case is now lowercased by the parser:
+  `getScheme()` and `__toString()` return `http` for `HTTP://...`. Code comparing the
+  scheme case-sensitively against an uppercase value must compare against lowercase.
+- `withUserInfo('', $password)` now **removes the user information**, as PSR-7 requires ("an
+  empty string for the user is equivalent to removing user information"): `getUsername()` and
+  `getPassword()` return `null`, `getUserInfo()` returns `''` and no `@` is written. Before,
+  `withUserInfo('')` set the username to `''`, and `withUserInfo('', 'pw')` kept the password
+  and wrote `:pw@host`. A password-only userinfo can still be parsed
+  (`new Uri('redis://:pw@host')` returns `''` / `'pw'`), but can no longer be built with
+  `withUserInfo()`.
 - `withUserInfo($user, $password)` expects a decoded user; an already-encoded user is encoded
   again (`us%40er` becomes `us%2540er`), the same rule the password already followed.
 

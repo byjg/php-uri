@@ -54,25 +54,28 @@ class Uri implements CustomUriInterface
     private ?string $username = null;
     private ?string $password = null;
 
+    /**
+     * PSR-7: an empty user removes the user information, so the password is dropped too.
+     */
     #[Override]
     public function withUserInfo(string $user, ?string $password = null): UriInterface
     {
         $clone = clone $this;
-        $clone->username = $user;
-        $clone->password = $password;
+        $clone->username = $user === '' ? null : $user;
+        $clone->password = $user === '' ? null : $password;
         return $clone;
     }
 
     /**
      * The user and the password are stored decoded (getUsername()/getPassword()) and each one is
      * percent-encoded here, so a ":" or "@" in the user cannot be read as a delimiter (RFC 3986
-     * section 3.2.1).
+     * section 3.2.1). The ":" is written whenever there is a password, even an empty one.
      */
     #[Override]
     public function getUserInfo(): string
     {
         return rawurlencode($this->username ?? "")
-            . (!empty($this->password) ? ':' . rawurlencode($this->password) : '' );
+            . ($this->password !== null ? ':' . rawurlencode($this->password) : '' );
     }
 
     /**
@@ -344,7 +347,7 @@ class Uri implements CustomUriInterface
 
     private function concatSuffix(string $str, string $suffix): string
     {
-        if (!empty($str)) {
+        if ($str !== '') {
             $str = $str . $suffix;
         }
         return $str;
@@ -369,7 +372,7 @@ class Uri implements CustomUriInterface
 
         $pattern = "/^"
             . "(?:(?P<scheme>\w+):\/\/)?"
-            . "(?:(?P<user>\S*?):(?P<pass>\S+)@)?"
+            . "(?:(?P<user>\S*?):(?P<pass>\S*)@)?"
             . "(?:(?P<user2>\S+)@)?"
             . "(?P<host>\[[0-9A-Fa-f:.]+(?:%25[\w\-.~]+)?\]|(?![A-Za-z]:(?!\d))[\w\-]+(?:\.[\w\-]+)*)?"
             . "(?::(?P<port>\d+))?"
@@ -377,18 +380,19 @@ class Uri implements CustomUriInterface
             . "(?:\?(?P<query>[^#]+))?"
             . "(?:#(?P<fragment>.*))?"
             . "$/";
-        preg_match($pattern, $uri, $parsed);
+        // Unmatched groups are null, so a URI without a userinfo (null) is told apart from
+        // an empty user or password (":pw@", "user:@").
+        preg_match($pattern, $uri, $parsed, PREG_UNMATCHED_AS_NULL);
 
-        $user = $this->getFromArray($parsed, 'user', null);
-        if (empty($user)) {
-            $user = $this->getFromArray($parsed, 'user2', null);
-        }
+        $user = $this->getFromArray($parsed, 'user', null)
+            ?? $this->getFromArray($parsed, 'user2', null);
+        $pass = $this->getFromArray($parsed, 'pass', null);
 
-        $this->scheme = $this->getFromArray($parsed, 'scheme', '') ?? '';
+        $this->scheme = strtolower($this->getFromArray($parsed, 'scheme', '') ?? '');
         $this->host = $this->getFromArray($parsed, 'host', '') ?? '';
         $this->port = $this->getIntFromArray($parsed, 'port');
         $this->username = $user === null ? null : rawurldecode($user);
-        $this->password = rawurldecode($this->getFromArray($parsed, 'pass', '') ?? '');
+        $this->password = $pass === null ? null : rawurldecode($pass);
         $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', '') ?? '') ?? '';
         $this->setQuery($this->getFromArray($parsed, 'query', '') ?? '');
         $this->fragment = $this->getFromArray($parsed, 'fragment', '') ?? '';

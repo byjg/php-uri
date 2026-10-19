@@ -442,8 +442,8 @@ class UriTest extends TestCase
                 'https://host/path?key=value 1&key2=á%1$@a#fra%!',
                 [
                     'Scheme' => 'https',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => "host",
                     'Port' => null,
@@ -458,8 +458,8 @@ class UriTest extends TestCase
                 'https://example.com/path/to?q=foo bar&q2=foo%20bar&q3=abc%3D%41#section-42',
                 [
                     'Scheme' => 'https',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => "example.com",
                     'Port' => null,
@@ -474,8 +474,8 @@ class UriTest extends TestCase
                 'kafka://h:9092',
                 [
                     'Scheme' => 'kafka',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => 'h',
                     'Port' => 9092,
@@ -490,8 +490,8 @@ class UriTest extends TestCase
                 'kafka://a:9092/path',
                 [
                     'Scheme' => 'kafka',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => 'a',
                     'Port' => 9092,
@@ -522,8 +522,8 @@ class UriTest extends TestCase
                 'h:9092',
                 [
                     'Scheme' => "",
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => 'h',
                     'Port' => 9092,
@@ -538,8 +538,8 @@ class UriTest extends TestCase
                 'kafka://[::1]:9092',
                 [
                     'Scheme' => 'kafka',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => '[::1]',
                     'Port' => 9092,
@@ -570,8 +570,8 @@ class UriTest extends TestCase
                 'http://[::ffff:192.0.2.1]/p',
                 [
                     'Scheme' => 'http',
-                    'Username' => "",
-                    'Password' => "",
+                    'Username' => null,
+                    'Password' => null,
                     'Userinfo' => "",
                     'Host' => '[::ffff:192.0.2.1]',
                     'Port' => null,
@@ -596,14 +596,14 @@ class UriTest extends TestCase
     public function testParseUsername(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
-        $this->assertEquals($assertFields["Username"], $uri->getUsername());
+        $this->assertSame($assertFields["Username"], $uri->getUsername());
     }
 
     #[DataProvider('uriProvider')]
     public function testParsePassword(string $uriStr, array $assertFields)
     {
         $uri = new Uri($uriStr);
-        $this->assertEquals($assertFields["Password"], $uri->getPassword());
+        $this->assertSame($assertFields["Password"], $uri->getPassword());
     }
 
     #[DataProvider('uriProvider')]
@@ -670,17 +670,21 @@ class UriTest extends TestCase
         // uri, username, password, userinfo
         return [
             'user and password' => ['redis://user:pass@host:6379', 'user', 'pass', 'user:pass'],
-            'user only' => ['redis://user@host:6379', 'user', '', 'user'],
+            'user only' => ['redis://user@host:6379', 'user', null, 'user'],
             'password only' => ['redis://:mypassword@host:6379', '', 'mypassword', ':mypassword'],
             'password only, encoded' => ['redis://:p%40ss%3Aw@host:6379', '', 'p@ss:w', ':p%40ss%3Aw'],
             'user encoded' => ['redis://us%40er:p%40ss@host:6379', 'us@er', 'p@ss', 'us%40er:p%40ss'],
-            'user encoded, no password' => ['redis://us%3Aer@host:6379', 'us:er', '', 'us%3Aer'],
-            'no userinfo' => ['redis://host:6379', '', '', ''],
+            'user encoded, no password' => ['redis://us%3Aer@host:6379', 'us:er', null, 'us%3Aer'],
+            'no userinfo' => ['redis://host:6379', null, null, ''],
+            'password "0"' => ['redis://user:0@host:6379', 'user', '0', 'user:0'],
+            'password "0" only' => ['redis://:0@host:6379', '', '0', ':0'],
+            'user "0", no password' => ['redis://0@host:6379', '0', null, '0'],
+            'empty password' => ['redis://user:@host:6379', 'user', '', 'user:'],
         ];
     }
 
     #[DataProvider('userInfoProvider')]
-    public function testParseUserInfoParts(string $uriStr, string $username, string $password, string $userInfo)
+    public function testParseUserInfoParts(string $uriStr, ?string $username, ?string $password, string $userInfo)
     {
         $uri = new Uri($uriStr);
         $this->assertSame($username, $uri->getUsername());
@@ -743,14 +747,56 @@ class UriTest extends TestCase
         $this->assertSame((string)$uri, (string)$parsed);
     }
 
-    public function testWithUserInfoPasswordOnly()
+    public static function withUserInfoProvider(): array
     {
-        $uri = Uri::getInstance('redis://host:6379')->withUserInfo('', 'p@ss');
-        $this->assertSame('redis://:p%40ss@host:6379', (string)$uri);
+        // user, password, expected string form
+        return [
+            'user only' => ['user', null, 'redis://user@host'],
+            'password "0"' => ['user', '0', 'redis://user:0@host'],
+            'empty password' => ['user', '', 'redis://user:@host'],
+            'user "0"' => ['0', null, 'redis://0@host'],
+            'user "0", password "0"' => ['0', '0', 'redis://0:0@host'],
+        ];
+    }
+
+    #[DataProvider('withUserInfoProvider')]
+    public function testWithUserInfoRoundTrips(string $user, ?string $password, string $expected)
+    {
+        $uri = Uri::getInstance('redis://host')->withUserInfo($user, $password);
+        $this->assertSame($expected, (string)$uri);
 
         $parsed = new Uri((string)$uri);
-        $this->assertSame('', $parsed->getUsername());
-        $this->assertSame('p@ss', $parsed->getPassword());
+        $this->assertSame($user, $parsed->getUsername());
+        $this->assertSame($password, $parsed->getPassword());
+    }
+
+    public function testParsedSchemeIsLowercase()
+    {
+        $uri = new Uri('HTTP://Example.com/Path');
+        $this->assertSame('http', $uri->getScheme());
+        $this->assertSame('http://Example.com/Path', (string)$uri);
+        $this->assertSame($uri->getScheme(), $uri->withScheme('HTTP')->getScheme());
+    }
+
+    public static function withEmptyUserProvider(): array
+    {
+        return [
+            'no password' => [null],
+            'with password' => ['p@ss'],
+            'empty password' => [''],
+        ];
+    }
+
+    #[DataProvider('withEmptyUserProvider')]
+    public function testWithUserInfoEmptyUserRemovesUserInfo(?string $password)
+    {
+        // PSR-7: "an empty string for the user is equivalent to removing user information"
+        $uri = Uri::getInstance('redis://user:pw@host:6379')->withUserInfo('', $password);
+        $this->assertNull($uri->getUsername());
+        $this->assertNull($uri->getPassword());
+        $this->assertSame('', $uri->getUserInfo());
+        $this->assertSame('host:6379', $uri->getAuthority());
+        $this->assertSame('redis://host:6379', (string)$uri);
     }
 
     public function testMountUrl1()
