@@ -6,9 +6,30 @@ sidebar_position: 2
 
 PSR-7 requires URIs to be compliant with RFC3986, which means URI output will always be properly URL encoded.
 
-## Password Encoding
+## Userinfo Encoding
 
-When creating URIs with special characters in passwords, they are automatically encoded:
+The username and the password are stored decoded (`getUsername()`, `getPassword()`) and each
+one is percent-encoded with `rawurlencode()` in `getUserInfo()`, `getAuthority()` and
+`__toString()`, as RFC 3986 section 3.2.1 requires for a `:` or `@` inside them.
+Parsing accepts both a raw and an encoded value:
+
+```php
+$uri = Uri::getInstance("mongodb://us%40er:p%40ss@host");
+echo $uri->getUsername(); // "us@er"
+echo (string)$uri;        // "mongodb://us%40er:p%40ss@host"
+
+// A raw "@" in the user is accepted and encoded on output
+$uri = Uri::getInstance("https://email@host.com:pass@host");
+echo $uri->getUsername(); // "email@host.com"
+echo (string)$uri;        // "https://email%40host.com:pass@host"
+```
+
+:::note
+A `%` followed by two hex digits is always read as an escape. A `%` that is not a valid escape
+(e.g. `ro%&ot`) is kept as a literal `%` and is written back as `%25`.
+:::
+
+The same applies to passwords:
 
 ```php
 // Creating a URI with special characters in the password
@@ -22,8 +43,8 @@ echo (string)$uri; // "https://user:pa%26@host"
 
 ## Using withUserInfo
 
-The `withUserInfo()` method stores the password as given, without decoding it. It is encoded
-on output, so pass it unencoded:
+The `withUserInfo()` method stores the user and the password as given, without decoding them.
+They are encoded on output, so pass them unencoded:
 
 ```php
 // Using withUserInfo with unencoded password
@@ -77,8 +98,8 @@ survives a round-trip through `Uri` with its signature intact.
 
 ## How Encoding Works Internally
 
-1. **During parsing**: Passwords are decoded using `rawurldecode()`
-2. **During output**: Passwords in `getUserInfo()` are re-encoded with `rawurlencode()`
+1. **During parsing**: The username and the password are decoded using `rawurldecode()`
+2. **During output**: The username and the password in `getUserInfo()` are re-encoded with `rawurlencode()`
 3. **Query strings**: Each key and value is decoded with `rawurldecode()` and re-encoded with
    `rawurlencode()`, then the pairs are joined back with `&`. A literal `+` is kept as written
    and never becomes `%2B`: form encoding reads `+` as a space and `%2B` as a plus sign, so

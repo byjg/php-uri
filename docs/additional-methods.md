@@ -16,12 +16,15 @@ Get the username component separately from the password.
 public function getUsername(): ?string
 ```
 
-**Returns**: The username. A parsed URI without a username returns an empty string;
+**Returns**: The decoded username (`us%40er` in the URI returns `us@er`). A parsed URI without a username returns an empty string;
 `null` is returned only when no URI was parsed and `withUserInfo()` was never called.
 
 ```php
 $uri = Uri::getInstance("https://john:secret@example.com");
 echo $uri->getUsername(); // "john"
+
+$uri = Uri::getInstance("mongodb://us%40er:secret@example.com");
+echo $uri->getUsername(); // "us@er"
 
 $uri = Uri::getInstance("https://example.com");
 var_dump($uri->getUsername()); // string(0) ""

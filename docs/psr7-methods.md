@@ -108,7 +108,9 @@ Retrieve the user information component of the URI.
 public function getUserInfo(): string
 ```
 
-**Returns**: User information in "username[:password]" format. Password is URL-encoded.
+**Returns**: User information in "username[:password]" format. The username and the password are
+each percent-encoded with `rawurlencode()`, so a `:` or `@` inside them cannot be read as a
+delimiter (RFC 3986 section 3.2.1). Use `getUsername()` and `getPassword()` for the decoded values.
 
 ```php
 $uri = Uri::getInstance("https://user:pa&ss@example.com");
@@ -116,6 +118,9 @@ echo $uri->getUserInfo(); // "user:pa%26ss"
 
 $uri = Uri::getInstance("https://user@example.com");
 echo $uri->getUserInfo(); // "user"
+
+$uri = Uri::getInstance("https://email@host.com:pass@example.com");
+echo $uri->getUserInfo(); // "email%40host.com:pass"
 
 // Password only (empty user), e.g. Redis AUTH
 $uri = Uri::getInstance("redis://:mypassword@host:6379");
@@ -142,10 +147,16 @@ echo (string)$uri; // "https://john:secret@example.com"
 $uri = Uri::getInstance("redis://host:6379")
     ->withUserInfo("", "mypassword");
 echo (string)$uri; // "redis://:mypassword@host:6379"
+
+// The user and the password are encoded on output
+$uri = Uri::getInstance("https://example.com")
+    ->withUserInfo("us:er", "p@ss");
+echo (string)$uri; // "https://us%3Aer:p%40ss@example.com"
 ```
 
 :::warning
-This method does NOT encode the password. If you pass an already-encoded password, it may result in double-encoding when the URI is serialized.
+Pass the user and the password decoded: they are stored as given and encoded on output. An
+already-encoded value is encoded again (`pa%26` becomes `pa%2526`).
 :::
 
 ### getAuthority()

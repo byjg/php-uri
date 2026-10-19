@@ -47,6 +47,11 @@ print((string)$uri); // Will print "https://user:pa%26@host"
 $uri = \ByJG\Util\Uri::getInstance("https://host")
     ->withUserInfo("user", "pa%26");
 print((string)$uri); // Will print "https://user:pa%2526@host"
+
+// The username is decoded by getUsername() and encoded in the string form, like the password
+$uri = \ByJG\Util\Uri::getInstance("https://email@host.com:pass@host");
+print($uri->getUsername()); // Will print "email@host.com"
+print((string)$uri); // Will print "https://email%40host.com:pass@host"
 ```
 
 ## Additional Methods
@@ -55,8 +60,8 @@ This implementation extends PSR-7 UriInterface with the following additional met
 
 | Method                                                                         | Description                           |
 |--------------------------------------------------------------------------------|---------------------------------------|
-| `getUsername(): ?string`                                                       | Get the username component of the URI |
-| `getPassword(): ?string`                                                       | Get the password component of the URI |
+| `getUsername(): ?string`                                                       | Get the decoded username of the URI   |
+| `getPassword(): ?string`                                                       | Get the decoded password of the URI   |
 | `getQueryPart(string $key): ?string`                                           | Get a specific query parameter by key |
 | `getQueryParts(string $key): array`                                            | Get every value of a query parameter  |
 | `withQueryKeyValue(string $key, string $value, bool $isEncoded = false): self` | Add or update a query parameter       |

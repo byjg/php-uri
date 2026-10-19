@@ -100,6 +100,24 @@
   `:pass@host` and now parses back to the same parts. No-user input still returns `''` for
   `getUsername()`, as before.
 
+- **The username is now decoded and encoded like the password.**
+
+  The parser decoded the password but stored the username as written, and `getUserInfo()`
+  wrote the username back raw. An encoded username was never decoded, and a raw `:` or `@` in
+  the username was written back unencoded, so the string form could not be parsed back reliably:
+
+  | Input | Before (`getUsername()` / string form) | Now |
+  |---|---|---|
+  | `mongodb://us%40er:p%40ss@host` | `us%40er` / `us%40er:p%40ss@host` | `us@er` / `us%40er:p%40ss@host` |
+  | `https://email@host.com:pw@host` | `email@host.com` / `email@host.com:pw@host` | `email@host.com` / `email%40host.com:pw@host` |
+  | `withUserInfo('us:er', 'pw')` | `us:er` / `us:er:pw@host` (re-parses as user `us`) | `us:er` / `us%3Aer:pw@host` |
+
+  RFC 3986 section 3.2.1 / 2.1: the userinfo component is percent-encoded and the user and
+  password values are the decoded octets. `getUsername()`/`getPassword()` return the decoded
+  values and `getUserInfo()`, `getAuthority()` and `__toString()` encode each one with
+  `rawurlencode()`. A raw username is still accepted on input; a `%` that is not a valid
+  escape (e.g. `ro%&ot`) is kept as a literal `%`.
+
 ## New Features
 
 - `CustomUriInterface::getQueryParts(string $key): array` returns **every** value of a key,
@@ -149,6 +167,18 @@
 - A URI such as `redis://:secret@host` now returns `getUsername() === ''` and
   `getPassword() === 'secret'`. Code that worked around the old bug by stripping the leading
   `:` from `getUsername()` must read `getPassword()` instead.
+
+- `getUsername()` now returns the **decoded** username: `us%40er` in the URI returns `us@er`.
+  Code that called `rawurldecode()` on it still works for any username without a literal `%`
+  (decoding is a no-op on an already-decoded value), but should drop the call.
+- `getUserInfo()`, `getAuthority()` and `__toString()` now **percent-encode the username**,
+  like the password already was: `https://email@host.com:pw@host` is written as
+  `https://email%40host.com:pw@host`. Every character outside `A-Z a-z 0-9 - . _ ~` is
+  encoded, sub-delims (`!$&'()*+,;=`) included. Code comparing the string form of a URI with
+  special characters in the username, or passing `getUserInfo()` straight to a consumer that
+  does not decode it (e.g. `CURLOPT_USERPWD`), must be updated.
+- `withUserInfo($user, $password)` expects a decoded user; an already-encoded user is encoded
+  again (`us%40er` becomes `us%2540er`), the same rule the password already followed.
 
 ## Requirements
 

@@ -63,10 +63,15 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    /**
+     * The user and the password are stored decoded (getUsername()/getPassword()) and each one is
+     * percent-encoded here, so a ":" or "@" in the user cannot be read as a delimiter (RFC 3986
+     * section 3.2.1).
+     */
     #[Override]
     public function getUserInfo(): string
     {
-        return ($this->username ?? "")
+        return rawurlencode($this->username ?? "")
             . (!empty($this->password) ? ':' . rawurlencode($this->password) : '' );
     }
 
@@ -382,7 +387,7 @@ class Uri implements CustomUriInterface
         $this->scheme = $this->getFromArray($parsed, 'scheme', '') ?? '';
         $this->host = $this->getFromArray($parsed, 'host', '') ?? '';
         $this->port = $this->getIntFromArray($parsed, 'port');
-        $this->username = $user;
+        $this->username = $user === null ? null : rawurldecode($user);
         $this->password = rawurldecode($this->getFromArray($parsed, 'pass', '') ?? '');
         $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', '') ?? '') ?? '';
         $this->setQuery($this->getFromArray($parsed, 'query', '') ?? '');

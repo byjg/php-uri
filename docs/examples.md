@@ -126,6 +126,9 @@ $uri = Uri::getInstance("ftp://user@example.com:password@ftp.server.com/path");
 echo $uri->getUsername(); // "user@example.com"
 echo $uri->getPassword(); // "password"
 echo $uri->getHost();     // "ftp.server.com"
+
+// The "@" in the user is percent-encoded on output
+echo (string)$uri;        // "ftp://user%40example.com:password@ftp.server.com/path"
 ```
 
 ### Special Characters in Password

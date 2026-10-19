@@ -79,13 +79,14 @@ class UriTest extends TestCase
                     'Scheme' => 'https',
                     'Username' => 'email@host.com.br',
                     'Password' => 'password',
-                    'Userinfo' => 'email@host.com.br:password',
+                    'Userinfo' => 'email%40host.com.br:password',
                     'Host' => 'hostname',
                     'Port' => null,
                     'Path' => '/path/path2',
                     'Query' => 'arg=value&arg2=value2',
                     'Fragment' => 'anchor',
-                    'Authority' => 'email@host.com.br:password@hostname'
+                    'Authority' => 'email%40host.com.br:password@hostname',
+                    'ToString' => 'https://email%40host.com.br:password@hostname/path/path2?arg=value&arg2=value2#anchor'
                 ]
             ],
             [ // #5
@@ -169,14 +170,14 @@ class UriTest extends TestCase
                     'Scheme' => 'mysql',
                     'Username' => 'ro@11!%&*(ot',
                     'Password' => 'pass@(*&!$$word',
-                    'Userinfo' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word',
+                    'Userinfo' => 'ro%4011%21%25%26%2A%28ot:pass%40%28%2A%26%21%24%24word',
                     'Host' => 'host-10.com',
                     'Port' => 3306,
                     'Path' => '/database',
                     'Query' => 'extra_param=10',
                     'Fragment' => '',
-                    'Authority' => 'ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306',
-                    'ToString' => 'mysql://ro@11!%&*(ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extra_param=10'
+                    'Authority' => 'ro%4011%21%25%26%2A%28ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306',
+                    'ToString' => 'mysql://ro%4011%21%25%26%2A%28ot:pass%40%28%2A%26%21%24%24word@host-10.com:3306/database?extra_param=10'
                 ]
             ],
             [ // #11
@@ -290,14 +291,14 @@ class UriTest extends TestCase
                     'Scheme' => 'smtp',
                     'Username' => 'us#$%er',
                     'Password' => 'pa!*&$ss',
-                    'Userinfo' => 'us#$%er:pa%21%2A%26%24ss',
+                    'Userinfo' => 'us%23%24%25er:pa%21%2A%26%24ss',
                     'Host' => 'host.com.br',
                     'Port' => 45,
                     'Path' => '',
                     'Query' => null,
                     'Fragment' => '',
-                    'Authority' => 'us#$%er:pa%21%2A%26%24ss@host.com.br:45',
-                    'ToString' => 'smtp://us#$%er:pa%21%2A%26%24ss@host.com.br:45',
+                    'Authority' => 'us%23%24%25er:pa%21%2A%26%24ss@host.com.br:45',
+                    'ToString' => 'smtp://us%23%24%25er:pa%21%2A%26%24ss@host.com.br:45',
                 ]
             ],
             [ // #19
@@ -672,6 +673,8 @@ class UriTest extends TestCase
             'user only' => ['redis://user@host:6379', 'user', '', 'user'],
             'password only' => ['redis://:mypassword@host:6379', '', 'mypassword', ':mypassword'],
             'password only, encoded' => ['redis://:p%40ss%3Aw@host:6379', '', 'p@ss:w', ':p%40ss%3Aw'],
+            'user encoded' => ['redis://us%40er:p%40ss@host:6379', 'us@er', 'p@ss', 'us%40er:p%40ss'],
+            'user encoded, no password' => ['redis://us%3Aer@host:6379', 'us:er', '', 'us%3Aer'],
             'no userinfo' => ['redis://host:6379', '', '', ''],
         ];
     }
@@ -686,6 +689,58 @@ class UriTest extends TestCase
         $this->assertSame('host', $uri->getHost());
         $this->assertSame(6379, $uri->getPort());
         $this->assertSame($uriStr, (string)$uri);
+    }
+
+    public function testRawUserIsReEmittedEncoded()
+    {
+        $uri = new Uri('mongodb://us@er:p@ss@host:27017');
+        $this->assertSame('us@er', $uri->getUsername());
+        $this->assertSame('p@ss', $uri->getPassword());
+        $this->assertSame('us%40er:p%40ss', $uri->getUserInfo());
+        $this->assertSame('mongodb://us%40er:p%40ss@host:27017', (string)$uri);
+    }
+
+    public function testRawPercentThatIsNotAnEscapeIsKept()
+    {
+        // "%&*" is not a valid escape, so it is read literally and encoded as "%25" on output
+        $uri = new Uri('mysql://ro%&ot:pw@host');
+        $this->assertSame('ro%&ot', $uri->getUsername());
+        $this->assertSame('ro%25%26ot:pw', $uri->getUserInfo());
+    }
+
+    public function testWithUserInfoEncodesTheUser()
+    {
+        $uri = Uri::getInstance('https://host')->withUserInfo('us:er@x', 'p:w');
+        $this->assertSame('us:er@x', $uri->getUsername());
+        $this->assertSame('us%3Aer%40x:p%3Aw', $uri->getUserInfo());
+        $this->assertSame('us%3Aer%40x:p%3Aw@host', $uri->getAuthority());
+        $this->assertSame('https://us%3Aer%40x:p%3Aw@host', (string)$uri);
+
+        $parsed = new Uri((string)$uri);
+        $this->assertSame('us:er@x', $parsed->getUsername());
+        $this->assertSame('p:w', $parsed->getPassword());
+    }
+
+    public static function userInfoIdempotencyProvider(): array
+    {
+        return [
+            ['https://email@host.com.br:password@hostname/path'],
+            ['mysql://ro@11!%&*(ot:pass@(*&!$$word@host-10.com:3306/database'],
+            ['smtp://us#$%er:pa!*&$ss@host.com.br:45'],
+            ['mongodb://us%40er:p%40ss@host'],
+            ['redis://:mypassword@host:6379'],
+            ['smtp://us:er:pass@host.com.br:45'],
+        ];
+    }
+
+    #[DataProvider('userInfoIdempotencyProvider')]
+    public function testUserInfoRoundTripIsIdempotent(string $uriStr)
+    {
+        $uri = new Uri($uriStr);
+        $parsed = new Uri((string)$uri);
+        $this->assertSame($uri->getUsername(), $parsed->getUsername());
+        $this->assertSame($uri->getPassword(), $parsed->getPassword());
+        $this->assertSame((string)$uri, (string)$parsed);
     }
 
     public function testWithUserInfoPasswordOnly()
