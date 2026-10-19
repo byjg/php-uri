@@ -5,6 +5,18 @@
 
 ## Bug Fixes
 
+- **`__toString()` follows PSR-7 for rootless paths, and keeps a query or fragment `"0"`.**
+
+  | Code | Before | Now |
+  |---|---|---|
+  | `(new Uri('https://host'))->withPath('foo')` | `https://hostfoo` | `https://host/foo` |
+  | `(new Uri('https://h/p'))->withQuery('0')` | `https://h/p0` | `https://h/p?0` |
+  | `(new Uri('https://h/p'))->withFragment('0')` | `https://h/p0` | `https://h/p#0` |
+
+  Two PSR-7 recommendations are still not followed on purpose, for connection strings: the standard port is kept
+  (`https://host:443`), and a URI without a scheme is written without `//` (`h:9092`). See "PSR-7 differences" in
+  the README.
+
 - **The query string is no longer corrupted on output** ([#23](https://github.com/byjg/php-uri/issues/23)).
 
   The query used to be stored only as a `parse_str()` array and rebuilt with

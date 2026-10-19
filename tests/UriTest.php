@@ -1322,4 +1322,24 @@ class UriTest extends TestCase
 
         $this->assertEquals($url, (string)(new Uri($url)));
     }
+
+    public static function toStringPsr7Provider(): array
+    {
+        return [
+            'rootless path with an authority' => [(new Uri('https://host'))->withPath('foo'), 'https://host/foo'],
+            'rootless path with a scheme-less authority' => [(new Uri('h:9092'))->withPath('foo'), 'h:9092/foo'],
+            'rootless path without an authority' => [(new Uri(''))->withPath('foo'), 'foo'],
+            'query "0"' => [(new Uri('https://h/p'))->withQuery('0'), 'https://h/p?0'],
+            'fragment "0"' => [(new Uri('https://h/p'))->withFragment('0'), 'https://h/p#0'],
+            'parsed query and fragment "0"' => [new Uri('https://h/p?0#0'), 'https://h/p?0#0'],
+            'scheme without a host' => [new Uri('sqlite:///tmp/db'), 'sqlite:///tmp/db'],
+            'scheme-less host and port' => [new Uri('h:9092'), 'h:9092'],
+        ];
+    }
+
+    #[DataProvider('toStringPsr7Provider')]
+    public function testToStringPsr7(Uri $uri, string $expected): void
+    {
+        $this->assertSame($expected, (string)$uri);
+    }
 }

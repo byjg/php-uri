@@ -17,11 +17,22 @@ A PHP implementation of PSR-7 UriInterface with additional utility methods.
 
 ## Features
 
-* Fully compliant with [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php)
+* Implements [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php), with two deliberate
+  differences for connection strings (see [PSR-7 differences](#psr-7-differences))
 * Includes additional utility methods via CustomUriInterface
 * Supports RFC3986 URI specification
 * Type-safe implementation with PHP 8 attributes and strict typing
 * Immutable class design pattern
+
+## PSR-7 differences
+
+The URI is also used for connection strings (`mysql://host:3306/db`, `h:9092`), so two PSR-7 recommendations are not followed:
+
+* **The standard port is kept.** `https://host:443` keeps `443` in `getPort()`, `getAuthority()` and the string (PSR-7
+  SHOULD return null and leave it out).
+* **A URI without a scheme is written without `//`.** `new Uri('h:9092')` is read as host `h` and port `9092` and
+  written back as `h:9092`, not `//h:9092`. A URI with a scheme always has `//` after it, even without a host
+  (`sqlite:///tmp/db`).
 
 ## URI Encoding Behavior
 

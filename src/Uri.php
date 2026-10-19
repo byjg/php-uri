@@ -337,10 +337,20 @@ class Uri implements CustomUriInterface
 
     public function __toString(): string
     {
+        $authority = $this->getAuthority();
+        $path = $this->getPath();
+
+        // PSR-7: a rootless path is prefixed by "/" when there is an authority.
+        // Unlike PSR-7, a URI without a scheme keeps its authority without "//", so "h:9092" round-trips,
+        // and "//" always follows a scheme, even without a host (sqlite:///tmp/db).
+        if ($authority !== '' && $path !== '' && $path[0] !== '/') {
+            $path = '/' . $path;
+        }
+
         return
             $this->concatSuffix($this->getScheme(), '://')
-            . $this->getAuthority()
-            . $this->getPath()
+            . $authority
+            . $path
             . $this->concatPrefix('?', $this->getQuery())
             . $this->concatPrefix('#', $this->getFragment());
     }
@@ -355,10 +365,10 @@ class Uri implements CustomUriInterface
 
     private function concatPrefix(string $prefix, ?string $str): string
     {
-        if (!empty($str)) {
-            $str = $prefix . $str;
+        if ($str === null || $str === '') {
+            return '';
         }
-        return $str ?? "";
+        return $prefix . $str;
     }
 
     /**
