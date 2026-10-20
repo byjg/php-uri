@@ -183,6 +183,9 @@
 
 ## Breaking Changes
 
+- `Uri::getInstanceFromString()` and `Uri::getInstanceFromUri()`, deprecated in 6.0, are
+  removed, as announced. Use `Uri::getInstance()`, which accepts a string, a `UriInterface` or
+  `null`.
 - None for well-formed input; `getQuery()` and `__toString()` now return the query the way
   it was given, so any code asserting on the mangled output above must be updated.
 - `getQueryPart()` and `getQueryParts()` decode values as RFC3986, where `+` is a literal
