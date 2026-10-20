@@ -49,46 +49,14 @@ $uri = Uri::getInstance();
 $uri = Uri::getInstance(null);
 ```
 
-## Deprecated Methods
+## Removed Methods
 
-The following methods are deprecated but still available for backward compatibility:
-
-### getInstanceFromString()
-
-```php
-/**
- * @deprecated Use getInstance() instead
- */
-public static function getInstanceFromString(
-    string|null $uriString = null
-): UriInterface
-```
-
-**Migration**:
-```php
-// Old way
-$uri = Uri::getInstanceFromString("https://example.com");
-
-// New way
-$uri = Uri::getInstance("https://example.com");
-```
-
-### getInstanceFromUri()
+`getInstanceFromString()` and `getInstanceFromUri()`, deprecated in 6.0, were removed in 7.0.
+Use `getInstance()`, which accepts a string, a `UriInterface` or `null`:
 
 ```php
-/**
- * @deprecated Use getInstance() instead
- */
-public static function getInstanceFromUri(UriInterface $uri): UriInterface
-```
-
-**Migration**:
-```php
-// Old way
-$uri = Uri::getInstanceFromUri($otherUri);
-
-// New way
-$uri = Uri::getInstance($otherUri);
+$uri = Uri::getInstance("https://example.com");   // was Uri::getInstanceFromString(...)
+$uri = Uri::getInstance($otherUri);               // was Uri::getInstanceFromUri(...)
 ```
 
 ## Constructor

@@ -408,26 +408,6 @@ class Uri implements CustomUriInterface
         $this->fragment = $this->getFromArray($parsed, 'fragment', '') ?? '';
     }
 
-    /**
-     * @param null|string $uriString
-     * @deprecated use getInstance
-     * @return UriInterface
-     */
-    public static function getInstanceFromString(string|null $uriString = null): UriInterface
-    {
-        return self::getInstance($uriString);
-    }
-
-    /**
-     * @param UriInterface $uri
-     * @deprecated use getInstance
-     * @return UriInterface
-     */
-    public static function getInstanceFromUri(UriInterface $uri): UriInterface
-    {
-        return self::getInstance($uri);
-    }
-
     public static function getInstance(string|UriInterface|null $uri = null): static
     {
         if ($uri instanceof UriInterface) {
