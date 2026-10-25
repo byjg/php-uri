@@ -148,6 +148,9 @@
 
 ## New Features
 
+- `ByJG\Util\UriFactory` implements the PSR-17 `UriFactoryInterface`: `createUri($string)`
+  returns a `Uri`. The package now requires `psr/http-factory` (interfaces only).
+
 - `CustomUriInterface::getQueryParts(string $key): array` returns **every** value of a key,
   in order — the only way to read a repeated key, now that `?tag=x&tag=y` survives:
 

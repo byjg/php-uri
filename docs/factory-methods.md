@@ -68,3 +68,19 @@ $uri = new Uri("https://example.com/path");
 ```
 
 However, the static factory method `getInstance()` is recommended for consistency and flexibility.
+
+## UriFactory (PSR-17)
+
+`ByJG\Util\UriFactory` implements the PSR-17 `UriFactoryInterface`, for code and containers
+that create URIs through the standard factory instead of a concrete class:
+
+```php
+use ByJG\Util\UriFactory;
+use Psr\Http\Message\UriFactoryInterface;
+
+$factory = new UriFactory();               // a UriFactoryInterface
+$uri = $factory->createUri('mysql://user:pass@db:3306/shop');
+```
+
+`createUri()` returns the same `Uri` as `new Uri($string)`; `createUri()` with no argument
+returns an empty URI.
