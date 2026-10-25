@@ -5,7 +5,7 @@ tags: [php, http]
 
 # PSR-7 URI Implementation
 
-A PHP implementation of PSR-7 UriInterface with additional utility methods.
+A PSR-7 URI that also works as a connection string: the object behind the `mysql://`, `amqp://` or `s3://` URIs of the ByJG components.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%23ea4aaa?logo=githubsponsors&logoColor=white&labelColor=0d1117)](https://github.com/sponsors/byjg)
 [![Build Status](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml/badge.svg?branch=master)](https://github.com/byjg/php-uri/actions/workflows/phpunit.yml)
@@ -14,6 +14,25 @@ A PHP implementation of PSR-7 UriInterface with additional utility methods.
 [![GitHub source](https://img.shields.io/badge/Github-source-informational?logo=github)](https://github.com/byjg/php-uri/)
 [![GitHub license](https://img.shields.io/github/license/byjg/php-uri.svg)](https://opensource.byjg.com/license/)
 [![GitHub release](https://img.shields.io/github/release/byjg/php-uri.svg)](https://github.com/byjg/php-uri/releases/)
+
+## Why
+
+Connection strings look like URIs, but a strict PSR-7 implementation mangles them: it drops
+the standard port (`https://host:443` loses `443`) and cannot represent a host and port
+without a scheme (`kafka:9092`). Passwords with special characters need encoding by hand.
+
+This URI keeps what a connection string needs, and adds what PSR-7 leaves out:
+
+```php
+$uri = Uri::getInstance('mysql://user:p%40ss@db:3306/shop?charset=utf8');
+
+$uri->getPassword();             // "p@ss", decoded
+$uri->getQueryPart('charset');   // "utf8"
+$uri->withQueryKeyValue('timeout', '5');
+```
+
+The same class reads the connection strings of the ByJG components (databases, NoSQL
+stores, message queues, mail, HTTP), so a connection is always configured the same way.
 
 ## Features
 
