@@ -84,3 +84,10 @@ $uri = $factory->createUri('mysql://user:pass@db:3306/shop');
 
 `createUri()` returns the same `Uri` as `new Uri($string)`; `createUri()` with no argument
 returns an empty URI.
+
+:::note Invalid URIs are not rejected
+PSR-17 says `createUri()` must throw an `InvalidArgumentException` when the URI cannot be
+parsed. The `Uri` parser is permissive and accepts any string, so `createUri()` never
+throws: `http://[bad`, `http://host:99999` or a string with a newline are kept as given.
+Validate the URI before creating it when the input is not trusted.
+:::

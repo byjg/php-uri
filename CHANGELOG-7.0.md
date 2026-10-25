@@ -150,6 +150,8 @@
 
 - `ByJG\Util\UriFactory` implements the PSR-17 `UriFactoryInterface`: `createUri($string)`
   returns a `Uri`. The package now requires `psr/http-factory` (interfaces only).
+  Unlike PSR-17's "MUST throw", it never throws for an invalid URI: the parser accepts any
+  string (see docs/factory-methods.md).
 
 - `CustomUriInterface::getQueryParts(string $key): array` returns **every** value of a key,
   in order — the only way to read a repeated key, now that `?tag=x&tag=y` survives:
