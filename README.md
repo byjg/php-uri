@@ -38,6 +38,7 @@ stores, message queues, mail, HTTP), so a connection is always configured the sa
 
 * Implements [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php), with two deliberate
   differences for connection strings (see [PSR-7 differences](#psr-7-differences))
+* Implements the [PSR-17](https://www.php-fig.org/psr/psr-17/) `UriFactoryInterface` (`UriFactory`)
 * Includes additional utility methods via CustomUriInterface
 * Supports RFC3986 URI specification
 * Type-safe implementation with PHP 8 attributes and strict typing
@@ -107,6 +108,12 @@ $uri = Uri::getInstance("https://example.com/path?query=value#fragment");
 
 // Create from another UriInterface
 $uri2 = Uri::getInstance($uri);
+```
+
+Code that receives a PSR-17 `UriFactoryInterface` gets the same `Uri` from `UriFactory`:
+
+```php
+$uri = (new \ByJG\Util\UriFactory())->createUri("https://example.com/path");
 ```
 
 ## Documentation
