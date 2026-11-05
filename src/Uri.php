@@ -31,6 +31,11 @@ class Uri implements CustomUriInterface
     private array $queryPairs = [];
 
     /**
+     * getQuery() of the pairs, built once: null until it is read, and again when the pairs change
+     */
+    private ?string $queryString = null;
+
+    /**
      * Index built by parse_str(). Kept only as a fallback for getQueryPart()/hasQueryKey(),
      * so callers relying on the PHP-mangled key names (e.g. "group_id" for "group.id")
      * keep working.
@@ -171,6 +176,7 @@ class Uri implements CustomUriInterface
 
     protected function setQuery(string $query): self
     {
+        $this->queryString = null;
         $this->queryPairs = [];
         foreach (explode('&', $query) as $pair) {
             if ($pair === '') {
@@ -186,13 +192,16 @@ class Uri implements CustomUriInterface
     #[Override]
     public function getQuery(): string
     {
-        $query = [];
-        foreach ($this->queryPairs as [$key, $value]) {
-            $query[] = $this->encodeQueryComponent($key)
-                . ($value === null ? '' : '=' . $this->encodeQueryComponent($value));
+        if ($this->queryString === null) {
+            $query = [];
+            foreach ($this->queryPairs as [$key, $value]) {
+                $query[] = $this->encodeQueryComponent($key)
+                    . ($value === null ? '' : '=' . $this->encodeQueryComponent($value));
+            }
+            $this->queryString = implode('&', $query);
         }
 
-        return implode('&', $query);
+        return $this->queryString;
     }
 
     /**
@@ -248,6 +257,7 @@ class Uri implements CustomUriInterface
         }
 
         $this->queryPairs = $pairs;
+        $this->queryString = null;
         parse_str($this->getQuery(), $this->query);
     }
 
