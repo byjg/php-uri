@@ -192,6 +192,9 @@
   string form now keeps the path as given, and `getPath()` reduces the leading slashes to one (`/tmp/db`,
   `/a`), as PSR-7 requires so the path cannot be read as an authority.
 
+- **`new Uri('0')` was an empty URI** (the constructor checked `empty()`, which is true for `"0"`). It is now
+  read as `"1"` is: the host `0`.
+
 ## Breaking Changes
 
 - `withScheme()` throws `InvalidArgumentException` for a scheme that is not empty or a letter followed by

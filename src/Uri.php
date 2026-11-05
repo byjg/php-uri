@@ -35,8 +35,10 @@ class Uri implements CustomUriInterface
      * so callers relying on the PHP-mangled key names (e.g. "group_id" for "group.id")
      * keep working.
      *
-     * @deprecated The mangled-name fallback is removed in 8.0. Ask for the real key instead,
-     *             or use getQueryParts(), which never consults this index.
+     * The mangled-name fallback is deprecated and removed in 8.0, with this index (see the
+     * CHANGELOG): ask for the real key instead, or use getQueryParts(), which never consults it.
+     * The property is private, so the deprecation is the fallback's, not the property's.
+     *
      * @var array<string, mixed>
      */
     private array $query = [];
@@ -394,7 +396,7 @@ class Uri implements CustomUriInterface
      */
     public function __construct(?string $uri = null)
     {
-        if (empty($uri)) {
+        if ($uri === null || $uri === '') {
             return;
         }
         if ($uri[0] === ':') {

@@ -1419,6 +1419,19 @@ class UriTest extends TestCase
         $this->assertSame($expected, (string)$uri);
     }
 
+    /**
+     * "0" is not an empty URI: without a scheme it is a host, as "1" is
+     */
+    public function testZeroIsNotAnEmptyUri(): void
+    {
+        foreach (['0', '1'] as $text) {
+            $uri = new Uri($text);
+
+            $this->assertSame($text, $uri->getHost());
+            $this->assertSame($text, (string)$uri);
+        }
+    }
+
     public static function standardPortProvider(): array
     {
         return [
