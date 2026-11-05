@@ -20,7 +20,6 @@ and open the template in the editor.
          failOnDeprecation="true"
          failOnPhpunitDeprecation="true"
          stopOnFailure="false"
-         defaultTestSuite="Test Suite"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.5/phpunit.xsd">
 
     <php>
@@ -42,7 +41,7 @@ and open the template in the editor.
             <exclude>./tests/Conformance/</exclude>
         </testsuite>
         <!-- PSR-7 and PSR-17 conformance (php-http/psr7-integration-tests, http-interop/http-factory-tests).
-             Not in the default run yet; run it by naming the Conformance test suite (see the README) -->
+             The deviations of Uri are skipped with the reason (tests/Conformance/UriIntegrationTest.php) -->
         <testsuite name="Conformance">
             <directory>./tests/Conformance/</directory>
             <file>./vendor/http-interop/http-factory-tests/test/UriFactoryTest.php</file>

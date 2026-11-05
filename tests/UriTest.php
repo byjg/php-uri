@@ -126,12 +126,13 @@ class UriTest extends TestCase
                     'Username' => null,
                     'Password' => null,
                     'Userinfo' => null,
-                    'Port' => 443,
+                    'Port' => null,
                     'Host' => 'hostname.com',
                     'Path' => '',
                     'Query' => null,
                     'Fragment' => '',
-                    'Authority' => 'hostname.com:443'
+                    'Authority' => 'hostname.com',
+                    'ToString' => 'https://hostname.com',
                 ]
             ],
             [ // #8
@@ -558,12 +559,12 @@ class UriTest extends TestCase
                     'Password' => 'pw',
                     'Userinfo' => 'user:pw',
                     'Host' => '[2001:db8::1]',
-                    'Port' => 443,
+                    'Port' => null,
                     'Path' => '/p',
                     'Query' => 'q=1',
                     'Fragment' => 'f',
-                    'Authority' => 'user:pw@[2001:db8::1]:443',
-                    'ToString' => 'https://user:pw@[2001:db8::1]:443/p?q=1#f',
+                    'Authority' => 'user:pw@[2001:db8::1]',
+                    'ToString' => 'https://user:pw@[2001:db8::1]/p?q=1#f',
                 ]
             ],
             [ // #36
@@ -580,6 +581,37 @@ class UriTest extends TestCase
                     'Fragment' => '',
                     'Authority' => '[::ffff:192.0.2.1]',
                     'ToString' => 'http://[::ffff:192.0.2.1]/p',
+                ]
+            ],
+            [ // #37 as #7, with a port that is not the standard one of https
+                'https://hostname.com:8443',
+                [
+                    'Scheme' => 'https',
+                    'Username' => null,
+                    'Password' => null,
+                    'Userinfo' => null,
+                    'Port' => 8443,
+                    'Host' => 'hostname.com',
+                    'Path' => '',
+                    'Query' => null,
+                    'Fragment' => '',
+                    'Authority' => 'hostname.com:8443',
+                ]
+            ],
+            [ // #38 as #35, with a port that is not the standard one of https
+                'https://user:pw@[2001:db8::1]:8443/p?q=1#f',
+                [
+                    'Scheme' => 'https',
+                    'Username' => 'user',
+                    'Password' => 'pw',
+                    'Userinfo' => 'user:pw',
+                    'Host' => '[2001:db8::1]',
+                    'Port' => 8443,
+                    'Path' => '/p',
+                    'Query' => 'q=1',
+                    'Fragment' => 'f',
+                    'Authority' => 'user:pw@[2001:db8::1]:8443',
+                    'ToString' => 'https://user:pw@[2001:db8::1]:8443/p?q=1#f',
                 ]
             ],
         ];
@@ -774,7 +806,7 @@ class UriTest extends TestCase
     {
         $uri = new Uri('HTTP://Example.com/Path');
         $this->assertSame('http', $uri->getScheme());
-        $this->assertSame('http://Example.com/Path', (string)$uri);
+        $this->assertSame('http://example.com/Path', (string)$uri);
         $this->assertSame($uri->getScheme(), $uri->withScheme('HTTP')->getScheme());
     }
 
@@ -1085,7 +1117,7 @@ class UriTest extends TestCase
     {
         $uri = new Uri('C:1');
 
-        $this->assertSame('C', $uri->getHost());
+        $this->assertSame('c', $uri->getHost());
         $this->assertSame(1, $uri->getPort());
         $this->assertSame('', $uri->getPath());
     }
@@ -1093,7 +1125,7 @@ class UriTest extends TestCase
     public static function ipv6Provider(): array
     {
         return [
-            // Input, host, port, path, authority
+            // Input, host, port, path, authority, string when it is not the input
             ['kafka://[::1]:9092', '[::1]', 9092, '', '[::1]:9092'],
             ['kafka://[::1]', '[::1]', null, '', '[::1]'],
             ['kafka://[2001:db8::1]:9092', '[2001:db8::1]', 9092, '', '[2001:db8::1]:9092'],
@@ -1101,7 +1133,9 @@ class UriTest extends TestCase
             ['kafka://[fe80::1%25eth0]:9092', '[fe80::1%25eth0]', 9092, '', '[fe80::1%25eth0]:9092'],
             // IPv4-mapped
             ['http://[::ffff:192.0.2.1]/p', '[::ffff:192.0.2.1]', null, '/p', '[::ffff:192.0.2.1]'],
-            ['https://user:pw@[2001:db8::1]:443/p', '[2001:db8::1]', 443, '/p', 'user:pw@[2001:db8::1]:443'],
+            // The standard port of https is not part of the URI
+            ['https://user:pw@[2001:db8::1]:443/p', '[2001:db8::1]', null, '/p', 'user:pw@[2001:db8::1]', 'https://user:pw@[2001:db8::1]/p'],
+            ['https://user:pw@[2001:db8::1]:8443/p', '[2001:db8::1]', 8443, '/p', 'user:pw@[2001:db8::1]:8443'],
         ];
     }
 
@@ -1115,7 +1149,8 @@ class UriTest extends TestCase
         string $host,
         ?int $port,
         string $path,
-        string $authority
+        string $authority,
+        ?string $string = null
     ) {
         $uri = new Uri($uriStr);
 
@@ -1126,7 +1161,7 @@ class UriTest extends TestCase
 
         // The failure this replaces was silent: the literal survived inside the path, so the
         // round-trip looked correct while every accessor was wrong. Assert both together.
-        $this->assertSame($uriStr, (string)$uri);
+        $this->assertSame($string ?? $uriStr, (string)$uri);
     }
 
     public static function notAnIpLiteralProvider(): array
@@ -1382,5 +1417,39 @@ class UriTest extends TestCase
     public function testToStringPsr7(Uri $uri, string $expected): void
     {
         $this->assertSame($expected, (string)$uri);
+    }
+
+    public static function standardPortProvider(): array
+    {
+        return [
+            'http 80' => [new Uri('http://foo@h:80/p'), null, 'foo@h', 'http://foo@h/p'],
+            'https 443' => [new Uri('https://h:443/p'), null, 'h', 'https://h/p'],
+            'set with withPort()' => [(new Uri('http://h/p'))->withPort(80), null, 'h', 'http://h/p'],
+            'another port of http' => [new Uri('http://h:8080/p'), 8080, 'h:8080', 'http://h:8080/p'],
+            'the port of http with https' => [new Uri('https://h:80/p'), 80, 'h:80', 'https://h:80/p'],
+            'a scheme with no standard port' => [new Uri('mysql://h:3306/db'), 3306, 'h:3306', 'mysql://h:3306/db'],
+            'standard port after withScheme()' => [(new Uri('ftp://h:443/p'))->withScheme('https'), null, 'h', 'https://h/p'],
+        ];
+    }
+
+    /**
+     * PSR-7: the standard port of the scheme (80 for http, 443 for https) is not part of the URI
+     */
+    #[DataProvider('standardPortProvider')]
+    public function testStandardPortIsNotPartOfTheUri(Uri $uri, ?int $port, string $authority, string $string): void
+    {
+        $this->assertSame($port, $uri->getPort());
+        $this->assertSame($authority, $uri->getAuthority());
+        $this->assertSame($string, (string)$uri);
+    }
+
+    /**
+     * PSR-7: the host is case-insensitive and returned in lowercase
+     */
+    public function testHostIsLowercase(): void
+    {
+        $this->assertSame('foobar.com', (new Uri('http://FooBar.COM/p'))->getHost());
+        $this->assertSame('foobar.com', (new Uri('http://h/p'))->withHost('FooBar.COM')->getHost());
+        $this->assertSame('http://foobar.com/p', (string)(new Uri('http://FooBar.COM/p')));
     }
 }

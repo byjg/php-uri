@@ -19,6 +19,9 @@ class Uri implements CustomUriInterface
     private string $scheme = '';
     private ?int $port = null;
 
+    /** The standard port of a scheme, which PSR-7 leaves out of the URI */
+    private const array STANDARD_PORTS = ['http' => 80, 'https' => 443];
+
     /**
      * The query as an ordered list of raw (still percent-encoded) key/value pairs.
      * A null value means the key was given without "=" at all (e.g. "?flag").
@@ -107,10 +110,13 @@ class Uri implements CustomUriInterface
     public function withHost(string $host): UriInterface
     {
         $clone = clone $this;
-        $clone->host = $host;
+        $clone->host = strtolower($host);
         return $clone;
     }
 
+    /**
+     * The host in lowercase: it is case-insensitive (RFC 3986 section 3.2.2)
+     */
     #[Override]
     public function getHost(): string
     {
@@ -132,7 +138,7 @@ class Uri implements CustomUriInterface
     #[Override]
     public function getPort(): ?int
     {
-        return $this->port;
+        return $this->port === (self::STANDARD_PORTS[$this->scheme] ?? null) ? null : $this->port;
     }
 
     #[Override]
@@ -414,7 +420,7 @@ class Uri implements CustomUriInterface
         $pass = $this->getFromArray($parsed, 'pass', null);
 
         $this->scheme = strtolower($this->getFromArray($parsed, 'scheme', '') ?? '');
-        $this->host = $this->getFromArray($parsed, 'host', '') ?? '';
+        $this->host = strtolower($this->getFromArray($parsed, 'host', '') ?? '');
         $this->port = $this->getIntFromArray($parsed, 'port');
         $this->username = $user === null ? null : rawurldecode($user);
         $this->password = $pass === null ? null : rawurldecode($pass);

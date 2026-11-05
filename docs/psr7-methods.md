@@ -53,8 +53,13 @@ Retrieve the host component of the URI.
 public function getHost(): string
 ```
 
+The host is case-insensitive and returned in lowercase.
+
 ```php
 $uri = Uri::getInstance("https://example.com:8080/path");
+echo $uri->getHost(); // "example.com"
+
+$uri = Uri::getInstance("https://Example.COM/path");
 echo $uri->getHost(); // "example.com"
 ```
 
@@ -78,7 +83,8 @@ Retrieve the port component of the URI.
 public function getPort(): ?int
 ```
 
-**Returns**: The port as an integer, or `null` if not set.
+**Returns**: The port as an integer, or `null` if not set or if it is the standard port of the scheme
+(80 for `http`, 443 for `https`), which is then also left out of the authority and the string.
 
 ```php
 $uri = Uri::getInstance("https://example.com:8080");
@@ -86,6 +92,10 @@ echo $uri->getPort(); // 8080
 
 $uri = Uri::getInstance("https://example.com");
 var_dump($uri->getPort()); // NULL
+
+$uri = Uri::getInstance("https://example.com:443/p");
+var_dump($uri->getPort()); // NULL
+echo $uri;                 // "https://example.com/p"
 ```
 
 ### withPort()

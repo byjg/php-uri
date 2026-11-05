@@ -13,9 +13,10 @@
   | `(new Uri('https://h/p'))->withQuery('0')` | `https://h/p0` | `https://h/p?0` |
   | `(new Uri('https://h/p'))->withFragment('0')` | `https://h/p0` | `https://h/p#0` |
 
-  Two PSR-7 recommendations are still not followed on purpose, for connection strings: the standard port is kept
-  (`https://host:443`), and a URI without a scheme is written without `//` (`h:9092`). See "PSR-7 differences" in
-  the README.
+  Some PSR-7 rules are still not followed on purpose, for connection strings: a URI without a scheme is a
+  host and is written without `//` (`h:9092`), the path is not percent-encoded, and `withUserInfo()` does not
+  decode. See "PSR-7 differences" in the README. The standard port of `http` and `https` is now left out
+  (see Breaking Changes).
 
 - **The query string is no longer corrupted on output** ([#23](https://github.com/byjg/php-uri/issues/23)).
 
@@ -57,7 +58,7 @@
   |---|---|---|
   | `kafka://[::1]:9092` | `''` / `null` / `[::1]:9092` | `[::1]` / `9092` / `''` |
   | `kafka://[fe80::1%25eth0]:9092` | `''` / `null` / `[fe80::1%25eth0]:9092` | `[fe80::1%25eth0]` / `9092` / `''` |
-  | `https://user:pw@[2001:db8::1]:443/p` | `''` / `null` / `[2001:db8::1]:443/p` | `[2001:db8::1]` / `443` / `/p` |
+  | `https://user:pw@[2001:db8::1]:8443/p` | `''` / `null` / `[2001:db8::1]:8443/p` | `[2001:db8::1]` / `8443` / `/p` |
 
   The host pattern described only a dot-separated registered name, which cannot contain `[`,
   `]` or `:`, so RFC 3986 section 3.2.2's `IP-literal` had nothing to match. An `IP-literal`
@@ -197,6 +198,14 @@
   letters, digits, `+`, `-` or `.` (RFC 3986), as PSR-7 requires: `withScheme('34')` used to store `"34"`.
 - `new Uri(':')`, and any URI starting with `:` (an empty scheme), throws `InvalidArgumentException`, which
   `UriFactory::createUri()` also throws, as PSR-17 requires.
+- The standard port of the scheme (80 for `http`, 443 for `https`) is not part of the URI, as PSR-7
+  requires: `https://h:443/p` has the port `null`, the authority `h` and the string `https://h/p`. Use
+  `getPort() ?? 443` (or the default of the scheme) where the number is needed.
+- `getHost()` returns the host in lowercase, as PSR-7 requires, and so does the string form:
+  `http://Example.COM` is `http://example.com`.
+- The PSR-7 and PSR-17 conformance suites are part of the test run; the deviations of `Uri` (a URI
+  without a scheme read as a DSN, a path not percent-encoded, a user info not decoded) are skipped with
+  the reason.
 
 - `Uri::getInstanceFromString()` and `Uri::getInstanceFromUri()`, deprecated in 6.0, are
   removed, as announced. Use `Uri::getInstance()`, which accepts a string, a `UriInterface` or
