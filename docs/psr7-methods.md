@@ -32,7 +32,8 @@ public function withScheme(string $scheme): UriInterface
 ```
 
 **Parameters**:
-- `$scheme` - The scheme to set (will be normalized to lowercase)
+- `$scheme` - The scheme to set (will be normalized to lowercase). It is empty, or a letter followed by
+  letters, digits, `+`, `-` or `.` (RFC 3986); anything else throws `InvalidArgumentException`
 
 **Returns**: A new instance with the specified scheme.
 
@@ -198,6 +199,11 @@ public function getPath(): string
 ```php
 $uri = Uri::getInstance("https://example.com/some/path");
 echo $uri->getPath(); // "/some/path"
+
+// Leading slashes are reduced to one, so the path cannot be read as a host; the string keeps them
+$uri = Uri::getInstance("https://example.com//some/path");
+echo $uri->getPath(); // "/some/path"
+echo $uri;            // "https://example.com//some/path"
 ```
 
 ### withPath()

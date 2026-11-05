@@ -186,7 +186,17 @@
 
   No runtime deprecation is emitted; this is a documentation-only notice.
 
+- **A path starting with `//` lost its root**: `sqlite:////tmp/db` had the path `tmp/db` and was written
+  `sqlite://tmp/db`, which reads back with the host `tmp`; `http://example.org//a` had the path `a`. The
+  string form now keeps the path as given, and `getPath()` reduces the leading slashes to one (`/tmp/db`,
+  `/a`), as PSR-7 requires so the path cannot be read as an authority.
+
 ## Breaking Changes
+
+- `withScheme()` throws `InvalidArgumentException` for a scheme that is not empty or a letter followed by
+  letters, digits, `+`, `-` or `.` (RFC 3986), as PSR-7 requires: `withScheme('34')` used to store `"34"`.
+- `new Uri(':')`, and any URI starting with `:` (an empty scheme), throws `InvalidArgumentException`, which
+  `UriFactory::createUri()` also throws, as PSR-17 requires.
 
 - `Uri::getInstanceFromString()` and `Uri::getInstanceFromUri()`, deprecated in 6.0, are
   removed, as announced. Use `Uri::getInstance()`, which accepts a string, a `UriInterface` or

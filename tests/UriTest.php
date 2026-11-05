@@ -778,6 +778,47 @@ class UriTest extends TestCase
         $this->assertSame($uri->getScheme(), $uri->withScheme('HTTP')->getScheme());
     }
 
+    public static function invalidSchemeProvider(): array
+    {
+        return [
+            'starts with a digit' => ['34'],
+            'has a space' => ['ht tp'],
+            'has a colon' => ['http:'],
+        ];
+    }
+
+    #[DataProvider('invalidSchemeProvider')]
+    public function testWithInvalidScheme(string $scheme)
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Uri::getInstance('http://host')->withScheme($scheme);
+    }
+
+    public function testWithSchemeAllowsTheRfc3986Characters()
+    {
+        $this->assertSame('svn+ssh', Uri::getInstance('http://host')->withScheme('svn+ssh')->getScheme());
+        $this->assertSame('', Uri::getInstance('http://host')->withScheme('')->getScheme());
+    }
+
+    public function testUriWithAnEmptySchemeIsInvalid()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        new Uri(':');
+    }
+
+    public function testGetPathReducesLeadingSlashesToOne()
+    {
+        // The string keeps the path as given
+        $uri = new Uri('http://example.org//valid///path');
+        $this->assertSame('/valid///path', $uri->getPath());
+        $this->assertSame('http://example.org//valid///path', (string)$uri);
+
+        // Before, the path lost its root: "sqlite:////tmp/db" became "sqlite://tmp/db", with host "tmp"
+        $uri = new Uri('sqlite:////tmp/db');
+        $this->assertSame('/tmp/db', $uri->getPath());
+        $this->assertSame('sqlite:////tmp/db', (string)$uri);
+    }
+
     public static function withEmptyUserProvider(): array
     {
         return [

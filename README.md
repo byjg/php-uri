@@ -138,5 +138,14 @@ composer require "byjg/uri"
 vendor/bin/phpunit
 ```
 
+The PSR-7 and PSR-17 conformance suites, the ones other implementations run
+([php-http/psr7-integration-tests](https://github.com/php-http/psr7-integration-tests) and
+[http-interop/http-factory-tests](https://github.com/http-interop/http-factory-tests)), are not in the
+default run yet:
+
+```bash
+vendor/bin/phpunit --testsuite Conformance
+```
+
 ----
 [Open source ByJG](https://opensource.byjg.com)

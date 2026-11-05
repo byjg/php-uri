@@ -2,6 +2,7 @@
 
 namespace ByJG\Util;
 
+use InvalidArgumentException;
 use Override;
 use Psr\Http\Message\UriInterface;
 
@@ -37,9 +38,15 @@ class Uri implements CustomUriInterface
      */
     private array $query = [];
 
+    /**
+     * @throws InvalidArgumentException when the scheme is not a letter followed by letters, digits, "+", "-" or "." (RFC 3986)
+     */
     #[Override]
     public function withScheme(string $scheme): UriInterface
     {
+        if ($scheme !== '' && preg_match('/^[A-Za-z][A-Za-z0-9+.\-]*$/', $scheme) !== 1) {
+            throw new InvalidArgumentException("Invalid scheme: $scheme");
+        }
         $clone = clone $this;
         $clone->scheme = strtolower($scheme);
         return $clone;
@@ -136,10 +143,14 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    /**
+     * Leading slashes are reduced to one ("http://host//path" has the path "/path"), so the path cannot
+     * be read as an authority (CVE-2015-3257). The string form keeps the path as it was given.
+     */
     #[Override]
     public function getPath(): string
     {
-        return $this->path;
+        return preg_replace('~^/{2,}~', '/', $this->path) ?? $this->path;
     }
 
     #[Override]
@@ -338,7 +349,7 @@ class Uri implements CustomUriInterface
     public function __toString(): string
     {
         $authority = $this->getAuthority();
-        $path = $this->getPath();
+        $path = $this->path;
 
         // PSR-7: a rootless path is prefixed by "/" when there is an authority.
         // Unlike PSR-7, a URI without a scheme keeps its authority without "//", so "h:9092" round-trips,
@@ -373,11 +384,15 @@ class Uri implements CustomUriInterface
 
     /**
      * @param string|null $uri
+     * @throws InvalidArgumentException when the URI starts with ":" (an empty scheme)
      */
     public function __construct(?string $uri = null)
     {
         if (empty($uri)) {
             return;
+        }
+        if ($uri[0] === ':') {
+            throw new InvalidArgumentException("Invalid URI, the scheme is empty: $uri");
         }
 
         $pattern = "/^"
@@ -403,7 +418,7 @@ class Uri implements CustomUriInterface
         $this->port = $this->getIntFromArray($parsed, 'port');
         $this->username = $user === null ? null : rawurldecode($user);
         $this->password = $pass === null ? null : rawurldecode($pass);
-        $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', '') ?? '') ?? '';
+        $this->path = $this->getFromArray($parsed, 'path', '') ?? '';
         $this->setQuery($this->getFromArray($parsed, 'query', '') ?? '');
         $this->fragment = $this->getFromArray($parsed, 'fragment', '') ?? '';
     }
