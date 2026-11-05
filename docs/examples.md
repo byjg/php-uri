@@ -20,7 +20,7 @@ $uri = Uri::getInstance()
     ->withQueryKeyValue("limit", "20");
 
 echo (string)$uri;
-// "https://api.example.com:443/v1/users?page=1&limit=20"
+// "https://api.example.com/v1/users?page=1&limit=20" -- 443 is the standard port of https
 ```
 
 ## Database Connection Strings
@@ -193,7 +193,8 @@ Uri::getInstance("kafka://h:9092")->getHost();    // "h", port 9092 -- a host
 
 :::warning
 `C:1` is genuinely ambiguous -- it is both a drive-relative path and a one-character host on
-port 1, and nothing in the string separates them. It is read as **host `C` on port 1**.
+port 1, and nothing in the string separates them. It is read as **host `c` on port 1** (a host
+is in lowercase).
 Write `C:\\1` or `C:/1` if a path is meant.
 :::
 

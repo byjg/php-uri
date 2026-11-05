@@ -18,9 +18,9 @@ A PSR-7 URI that also works as a connection string: the object behind the `mysql
 
 ## Why
 
-Connection strings look like URIs, but a strict PSR-7 implementation mangles them: it drops
-the standard port (`https://host:443` loses `443`) and cannot represent a host and port
-without a scheme (`kafka:9092`). Passwords with special characters need encoding by hand.
+Connection strings look like URIs, but a strict PSR-7 implementation mangles them: it cannot
+represent a host and port without a scheme (`kafka:9092`), and it percent-encodes the path, which a
+driver reads as a name (a file, a database). Passwords with special characters need encoding by hand.
 
 This URI keeps what a connection string needs, and adds what PSR-7 leaves out:
 
@@ -37,7 +37,7 @@ stores, message queues, mail, HTTP), so a connection is always configured the sa
 
 ## Features
 
-* Implements [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php), with two deliberate
+* Implements [PSR-7 UriInterface](https://github.com/php-fig/http-message/blob/master/src/UriInterface.php), with deliberate
   differences for connection strings (see [PSR-7 differences](#psr-7-differences))
 * Implements the [PSR-17](https://www.php-fig.org/psr/psr-17/) `UriFactoryInterface` (`UriFactory`)
 * Includes additional utility methods via CustomUriInterface
@@ -47,13 +47,17 @@ stores, message queues, mail, HTTP), so a connection is always configured the sa
 
 ## PSR-7 differences
 
-The URI is also used for connection strings (`mysql://host:3306/db`, `h:9092`), so two PSR-7 recommendations are not followed:
+The URI is also used for connection strings (`mysql://host:3306/db`, `h:9092`), so some PSR-7 rules are not followed:
 
-* **The standard port is kept.** `https://host:443` keeps `443` in `getPort()`, `getAuthority()` and the string (PSR-7
-  SHOULD return null and leave it out).
-* **A URI without a scheme is written without `//`.** `new Uri('h:9092')` is read as host `h` and port `9092` and
-  written back as `h:9092`, not `//h:9092`. A URI with a scheme always has `//` after it, even without a host
-  (`sqlite:///tmp/db`).
+* **A URI without a scheme is a host, not a relative path, and is written without `//`.** `new Uri('h:9092')` is read
+  as host `h` and port `9092` and written back as `h:9092`, not `//h:9092`; `foo/bar` is host `foo` and path `/bar`.
+  A URI with a scheme always has `//` after it, even without a host (`sqlite:///tmp/db`).
+* **`getPath()` returns the path as given, not percent-encoded**, since the drivers read it as a name
+  (`sqlite:///tmp/my db.sqlite` has the path `/tmp/my db.sqlite`).
+* **`withUserInfo()` takes the user and the password as they are**, not encoded, so a password with `%41` keeps it.
+
+The standard port of `http` (80) and `https` (443) is left out, as PSR-7 requires: `https://host:443` has the port
+`null` and is written `https://host`. The port of any other scheme is kept (`mysql://db:3306`).
 
 ## URI Encoding Behavior
 
@@ -136,6 +140,16 @@ composer require "byjg/uri"
 
 ```bash
 vendor/bin/phpunit
+```
+
+The PSR-7 and PSR-17 conformance suites, the ones other implementations run
+([php-http/psr7-integration-tests](https://github.com/php-http/psr7-integration-tests) and
+[http-interop/http-factory-tests](https://github.com/http-interop/http-factory-tests)), are part of
+the run. The tests of the [PSR-7 differences](#psr-7-differences) are skipped with the reason
+(`tests/Conformance/UriIntegrationTest.php`).
+
+```bash
+vendor/bin/phpunit --testsuite Conformance
 ```
 
 ----

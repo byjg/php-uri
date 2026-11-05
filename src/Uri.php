@@ -2,6 +2,7 @@
 
 namespace ByJG\Util;
 
+use InvalidArgumentException;
 use Override;
 use Psr\Http\Message\UriInterface;
 
@@ -18,6 +19,9 @@ class Uri implements CustomUriInterface
     private string $scheme = '';
     private ?int $port = null;
 
+    /** The standard port of a scheme, which PSR-7 leaves out of the URI */
+    private const array STANDARD_PORTS = ['http' => 80, 'https' => 443];
+
     /**
      * The query as an ordered list of raw (still percent-encoded) key/value pairs.
      * A null value means the key was given without "=" at all (e.g. "?flag").
@@ -31,15 +35,23 @@ class Uri implements CustomUriInterface
      * so callers relying on the PHP-mangled key names (e.g. "group_id" for "group.id")
      * keep working.
      *
-     * @deprecated The mangled-name fallback is removed in 8.0. Ask for the real key instead,
-     *             or use getQueryParts(), which never consults this index.
+     * The mangled-name fallback is deprecated and removed in 8.0, with this index (see the
+     * CHANGELOG): ask for the real key instead, or use getQueryParts(), which never consults it.
+     * The property is private, so the deprecation is the fallback's, not the property's.
+     *
      * @var array<string, mixed>
      */
     private array $query = [];
 
+    /**
+     * @throws InvalidArgumentException when the scheme is not a letter followed by letters, digits, "+", "-" or "." (RFC 3986)
+     */
     #[Override]
     public function withScheme(string $scheme): UriInterface
     {
+        if ($scheme !== '' && preg_match('/^[A-Za-z][A-Za-z0-9+.\-]*$/', $scheme) !== 1) {
+            throw new InvalidArgumentException("Invalid scheme: $scheme");
+        }
         $clone = clone $this;
         $clone->scheme = strtolower($scheme);
         return $clone;
@@ -100,10 +112,13 @@ class Uri implements CustomUriInterface
     public function withHost(string $host): UriInterface
     {
         $clone = clone $this;
-        $clone->host = $host;
+        $clone->host = strtolower($host);
         return $clone;
     }
 
+    /**
+     * The host in lowercase: it is case-insensitive (RFC 3986 section 3.2.2)
+     */
     #[Override]
     public function getHost(): string
     {
@@ -125,7 +140,7 @@ class Uri implements CustomUriInterface
     #[Override]
     public function getPort(): ?int
     {
-        return $this->port;
+        return $this->port === (self::STANDARD_PORTS[$this->scheme] ?? null) ? null : $this->port;
     }
 
     #[Override]
@@ -136,10 +151,14 @@ class Uri implements CustomUriInterface
         return $clone;
     }
 
+    /**
+     * Leading slashes are reduced to one ("http://host//path" has the path "/path"), so the path cannot
+     * be read as an authority (CVE-2015-3257). The string form keeps the path as it was given.
+     */
     #[Override]
     public function getPath(): string
     {
-        return $this->path;
+        return preg_replace('~^/{2,}~', '/', $this->path) ?? $this->path;
     }
 
     #[Override]
@@ -338,7 +357,7 @@ class Uri implements CustomUriInterface
     public function __toString(): string
     {
         $authority = $this->getAuthority();
-        $path = $this->getPath();
+        $path = $this->path;
 
         // PSR-7: a rootless path is prefixed by "/" when there is an authority.
         // Unlike PSR-7, a URI without a scheme keeps its authority without "//", so "h:9092" round-trips,
@@ -373,11 +392,15 @@ class Uri implements CustomUriInterface
 
     /**
      * @param string|null $uri
+     * @throws InvalidArgumentException when the URI starts with ":" (an empty scheme)
      */
     public function __construct(?string $uri = null)
     {
-        if (empty($uri)) {
+        if ($uri === null || $uri === '') {
             return;
+        }
+        if ($uri[0] === ':') {
+            throw new InvalidArgumentException("Invalid URI, the scheme is empty: $uri");
         }
 
         $pattern = "/^"
@@ -399,11 +422,11 @@ class Uri implements CustomUriInterface
         $pass = $this->getFromArray($parsed, 'pass', null);
 
         $this->scheme = strtolower($this->getFromArray($parsed, 'scheme', '') ?? '');
-        $this->host = $this->getFromArray($parsed, 'host', '') ?? '';
+        $this->host = strtolower($this->getFromArray($parsed, 'host', '') ?? '');
         $this->port = $this->getIntFromArray($parsed, 'port');
         $this->username = $user === null ? null : rawurldecode($user);
         $this->password = $pass === null ? null : rawurldecode($pass);
-        $this->path = preg_replace('~^//~', '', $this->getFromArray($parsed, 'path', '') ?? '') ?? '';
+        $this->path = $this->getFromArray($parsed, 'path', '') ?? '';
         $this->setQuery($this->getFromArray($parsed, 'query', '') ?? '');
         $this->fragment = $this->getFromArray($parsed, 'fragment', '') ?? '';
     }

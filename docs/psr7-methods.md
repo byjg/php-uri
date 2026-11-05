@@ -32,7 +32,8 @@ public function withScheme(string $scheme): UriInterface
 ```
 
 **Parameters**:
-- `$scheme` - The scheme to set (will be normalized to lowercase)
+- `$scheme` - The scheme to set (will be normalized to lowercase). It is empty, or a letter followed by
+  letters, digits, `+`, `-` or `.` (RFC 3986); anything else throws `InvalidArgumentException`
 
 **Returns**: A new instance with the specified scheme.
 
@@ -52,8 +53,13 @@ Retrieve the host component of the URI.
 public function getHost(): string
 ```
 
+The host is case-insensitive and returned in lowercase.
+
 ```php
 $uri = Uri::getInstance("https://example.com:8080/path");
+echo $uri->getHost(); // "example.com"
+
+$uri = Uri::getInstance("https://Example.COM/path");
 echo $uri->getHost(); // "example.com"
 ```
 
@@ -77,7 +83,8 @@ Retrieve the port component of the URI.
 public function getPort(): ?int
 ```
 
-**Returns**: The port as an integer, or `null` if not set.
+**Returns**: The port as an integer, or `null` if not set or if it is the standard port of the scheme
+(80 for `http`, 443 for `https`), which is then also left out of the authority and the string.
 
 ```php
 $uri = Uri::getInstance("https://example.com:8080");
@@ -85,6 +92,10 @@ echo $uri->getPort(); // 8080
 
 $uri = Uri::getInstance("https://example.com");
 var_dump($uri->getPort()); // NULL
+
+$uri = Uri::getInstance("https://example.com:443/p");
+var_dump($uri->getPort()); // NULL
+echo $uri;                 // "https://example.com/p"
 ```
 
 ### withPort()
@@ -198,6 +209,11 @@ public function getPath(): string
 ```php
 $uri = Uri::getInstance("https://example.com/some/path");
 echo $uri->getPath(); // "/some/path"
+
+// Leading slashes are reduced to one, so the path cannot be read as a host; the string keeps them
+$uri = Uri::getInstance("https://example.com//some/path");
+echo $uri->getPath(); // "/some/path"
+echo $uri;            // "https://example.com//some/path"
 ```
 
 ### withPath()
