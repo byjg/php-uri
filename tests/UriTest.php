@@ -1465,4 +1465,30 @@ class UriTest extends TestCase
         $this->assertSame('foobar.com', (new Uri('http://h/p'))->withHost('FooBar.COM')->getHost());
         $this->assertSame('http://foobar.com/p', (string)(new Uri('http://FooBar.COM/p')));
     }
+
+    /**
+     * getQuery() is built once and kept: it must follow every change of the query, and an instance keeps its own
+     */
+    public function testGetQueryFollowsEveryChange(): void
+    {
+        $uri = new Uri('http://localhost/path?b=2&a=1');
+        $this->assertSame('b=2&a=1', $uri->getQuery());
+
+        $withQuery = $uri->withQuery('x=1&y');
+        $this->assertSame('x=1&y', $withQuery->getQuery());
+
+        $withKey = $withQuery->withQueryKeyValue('x', 'new value');
+        $this->assertSame('x=new%20value&y', $withKey->getQuery());
+        $this->assertSame('http://localhost/path?x=new%20value&y', (string)$withKey);
+
+        $added = $withKey->withQueryKeyValue('z', '3');
+        $this->assertSame('x=new%20value&y&z=3', $added->getQuery());
+
+        // The instances they came from keep their query
+        $this->assertSame('b=2&a=1', $uri->getQuery());
+        $this->assertSame('x=1&y', $withQuery->getQuery());
+        $this->assertSame('x=new%20value&y', $withKey->getQuery());
+
+        $this->assertSame('', $uri->withQuery('')->getQuery());
+    }
 }

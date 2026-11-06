@@ -263,6 +263,12 @@
 - `withUserInfo($user, $password)` expects a decoded user; an already-encoded user is encoded
   again (`us%40er` becomes `us%2540er`), the same rule the password already followed.
 
+## Performance
+
+- `getQuery()` builds the query string once, from the parsed pairs, and keeps it until the query changes
+  (`withQuery()`, `withQueryKeyValue()` return a new instance with its own). It encoded every key and value on
+  each call, and a request reads it several times (byjg/restserver, byjg/webrequest).
+
 ## Requirements
 
 - PHP 8.3, 8.4, 8.5 and 8.6 are now supported: `"php": ">=8.3 <8.7"`.
